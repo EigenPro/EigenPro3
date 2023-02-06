@@ -42,11 +42,11 @@ class KernelModel:
 
 
     def fit_batch(self, X, y, batch_ids, data_corrector=None):
-        grad = self.gradient_(X, y, batch_ids, data_corrector)
+        grad = self.preconditioned_gradient_(X, y, batch_ids, data_corrector)
         return self.projector_(grad)
 
 
-    def gradient_(self, X, y, batch_ids, data_corrector=None):
+    def preconditioned_gradient_(self, X, y, batch_ids, data_corrector=None):
         preds, kmat = self.predict(X, return_kmat=True)
         grad = preds - y
         return kmat.T @ grad - self.Kzxs @ data_corrector(grad, batch_ids)
