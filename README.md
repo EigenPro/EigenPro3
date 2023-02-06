@@ -4,7 +4,9 @@ $$f(x)=\sum_{i=1}^p \alpha_i K(x,z_i)$$
 where $z_i$ are $p$ model centers.
 
 # Installation
-```pip install git+https://github.com/EigenPro/EigenPro3.git`
+```
+pip install git+https://github.com/EigenPro/EigenPro3.git
+```
 Requirements:
 - pytorch >= 1.13 (not installed along with this package)
 
