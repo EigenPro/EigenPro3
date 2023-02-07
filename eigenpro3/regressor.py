@@ -39,10 +39,10 @@ class KernelModel:
     def fit_epoch_(self, X, y, batches, data_corrector=None, lr=None):
         for batch_ids in batches:
             self.weight.index_add_(0, batch_ids,
-             -lr * self.fit_batch(X[batch_ids], y[batch_ids], batch_ids, data_corrector))
+             -lr * self.fit_batch_(X[batch_ids], y[batch_ids], batch_ids, data_corrector))
 
 
-    def fit_batch(self, X, y, batch_ids, data_corrector=None):
+    def fit_batch_(self, X, y, batch_ids, data_corrector=None):
         grad = self.preconditioned_gradient_(X, y, batch_ids, data_corrector)
         return self.projector_(grad)
 
