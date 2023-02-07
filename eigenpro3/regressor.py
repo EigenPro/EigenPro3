@@ -3,8 +3,9 @@ from .utils import get_optimal_params
 
 class KernelModel:
 
-    def __init__(self, centers, kernel_fn, dev_mem=16):
+    def __init__(self, centers, kernel_fn, dev_mem=16, device=None):
         self.centers = centers
+        self.device = device
         self.n_centers = len(centers)
         self.kernel = kernel_fn
         self.weight = None
