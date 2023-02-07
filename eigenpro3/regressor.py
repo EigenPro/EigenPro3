@@ -29,7 +29,7 @@ class KernelModel:
 
 
     def fit(self, X, y, epochs=1, batch_size=None, lr=0.01):
-        self.weight = torch.zeros(self.n_centers, y.shape[-1])
+        self.weight = torch.zeros(self.n_centers, y.shape[-1], device=self.device)
         batch_size = X.n_samples if batch_size is None else batch_size
         batches = torch.randperm(X.n_samples).split(batch_size)
         self.Kzxs = self.kernel(self.centers, X.data[X.nystrom_ids])
