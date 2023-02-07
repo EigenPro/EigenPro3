@@ -5,9 +5,11 @@ from eigenpro3 import KernelModel, Dataset
 n, p, d, c = 1000, 100, 10, 3
 bw = 1.
 
-samples = torch.randn(n, d)
-centers = torch.randn(p, d)
-labels = torch.randn(n, c)
+DEVICE=torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+samples = torch.randn(n, d, device=DEVICE)
+centers = torch.randn(p, d, device=DEVICE)
+labels = torch.randn(n, c, device=DEVICE)
 
 kernel_fn = lambda x, z: laplacian(x, z, bandwidth=1.)
 
