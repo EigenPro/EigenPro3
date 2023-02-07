@@ -27,21 +27,22 @@ class KernelModel:
             return (self.predict.argmax(-1)==y.argmax(-1)).sum()/len(y)
 
 
-    def fit(self, X, y, epochs=1, batch_size=None):
+    def fit(self, X, y, epochs=1, batch_size=None, lr=0.01):
         self.weights = torch.zeros(self.n_centers, y.shape[-1])
         batch_size = X.n_samples if batch_size is None else batch_size
         batches = torch.randperm(X.n_samples).split(batch_size)
         self.Kzxs = self.kernel(self.centers, X.data[X.nystrom_ids])
         for t in range(epochs):
-            self.fit_epoch_(X.data, y, batches, X.corrector)
+            self.fit_epoch_(X.data, y, batches, X.corrector, lr=lr)
 
 
-    def fit_epoch_(self, X, y, batches, data_corrector=None):
+    def fit_epoch_(self, X, y, batches, data_corrector=None, lr=None):
         for batch_ids in batches:
-            self.fit_batch(X[batch_ids], y[batch_ids], batch_ids, data_corrector)
+            self.weight.index_add_(0, batch_ids,
+             -lr * self.fit_batch(X[batch_ids], y[batch_ids], batch_ids, data_corrector, lr=lr))
 
 
-    def fit_batch(self, X, y, batch_ids, data_corrector=None):
+    def fit_batch(self, X, y, batch_ids, data_corrector=None, lr=lr):
         grad = self.preconditioned_gradient_(X, y, batch_ids, data_corrector)
         return self.projector_(grad)
 
