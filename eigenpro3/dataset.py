@@ -28,4 +28,5 @@ class Dataset:
 
     def corrector(self, g, batch_ids):
         kmat_g = self.kernel(self.data[self.nystrom_ids], self.data[batch_ids]) @ g
+        print(self.scaled_eigvecs.device, kmat_g.device)
         return self.scaled_eigvecs @ (self.scaled_eigvecs.T @ kmat_g)
