@@ -15,6 +15,6 @@ kernel_fn = lambda x, z: laplacian(x, z, bandwidth=1.)
 
 data = Dataset(samples, kernel_fn=kernel_fn, precondition=True, top_q=10)
 
-model = KernelModel(centers=centers, kernel_fn=kernel_fn)
+model = KernelModel(centers=centers, kernel_fn=kernel_fn, device=DEVICE)
 
 model.fit(data, labels, batch_size=12)
