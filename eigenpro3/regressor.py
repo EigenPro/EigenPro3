@@ -38,7 +38,7 @@ class KernelModel:
 
     def fit_epoch_(self, X, y, batches, data_corrector=None, lr=None):
         for batch_ids in batches:
-            self.weight.sub_(lr * self.fit_batch_(X[batch_ids], y[batch_ids], batch_ids, data_corrector)
+            self.weight.sub_(lr * self.fit_batch_(X[batch_ids], y[batch_ids], batch_ids, data_corrector))
 
 
     def fit_batch_(self, X, y, batch_ids, data_corrector=None):
