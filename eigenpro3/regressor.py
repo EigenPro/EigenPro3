@@ -50,6 +50,7 @@ class KernelModel:
     def preconditioned_gradient_(self, X, y, batch_ids, data_corrector=None):
         preds, kmat = self.predict(X, return_kmat=True)
         grad = preds - y
+        print(grad.device, kmat.device, self.Kzxs.device)
         return kmat.T @ grad - self.Kzxs @ data_corrector(grad, batch_ids)
 
 
