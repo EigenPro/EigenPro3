@@ -7,13 +7,13 @@ class KernelModel:
         self.centers = centers
         self.n_centers = len(centers)
         self.kernel = kernel_fn
-        self.weights = None
+        self.weight = None
         self.kzz_inv = torch.linalg.inv(self.kernel(self.centers, self.centers))
 
 
     def predict(self, X, return_kmat=False):
         kmat = self.kernel(X, self.centers)
-        preds = kmat @ self.weights
+        preds = kmat @ self.weight
         if return_kmat:
             return preds, kmat
         else:
@@ -28,7 +28,7 @@ class KernelModel:
 
 
     def fit(self, X, y, epochs=1, batch_size=None, lr=0.01):
-        self.weights = torch.zeros(self.n_centers, y.shape[-1])
+        self.weight = torch.zeros(self.n_centers, y.shape[-1])
         batch_size = X.n_samples if batch_size is None else batch_size
         batches = torch.randperm(X.n_samples).split(batch_size)
         self.Kzxs = self.kernel(self.centers, X.data[X.nystrom_ids])
