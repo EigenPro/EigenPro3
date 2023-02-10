@@ -3,6 +3,7 @@ import collections, time, torch, concurrent.futures, torch.nn as nn
 from .utils.svd import nystrom_kernel_svd
 from .utils import midrule, bottomrule
 from timeit import default_timer as timer
+import math
 
 
 def asm_eigenpro_fn(samples, map_fn, top_q, bs_gpu, alpha, min_q=5, seed=1):
@@ -36,7 +37,7 @@ def asm_eigenpro_fn(samples, map_fn, top_q, bs_gpu, alpha, min_q=5, seed=1):
         svd_q = top_q
 
     eigvals, eigvecs, beta = nystrom_kernel_svd(samples, map_fn, svd_q)
-
+    eigvecs /= math.sqrt(n_sample)
 
     # Choose k such that the batch size is bounded by
     #   the subsample size and the memory size.
