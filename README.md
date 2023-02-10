@@ -5,7 +5,7 @@ where $z_i$ are $p$ model centers.
 
 # Installation
 ```
-pip install git+https://github.com/EigenPro/EigenPro3.git
+pip install git+https://github.com/EigenPro/EigenPro3.git@testing
 ```
 Requirements:
 - pytorch >= 1.13 (not installed along with this package)
