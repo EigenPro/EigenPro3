@@ -1,16 +1,8 @@
 '''Construct kernel model with EigenPro optimizer.'''
-import collections
-import time
-import torch
-import random
-from sklearn.utils import gen_batches
-import torch.nn as nn
-import numpy as np
-from .svd import nystrom_kernel_svd
+import collections, time, torch, concurrent.futures, torch.nn as nn
+from .utils.svd import nystrom_kernel_svd
 from timeit import default_timer as timer
-import pickle
-from sklearn.utils import gen_batches
-import concurrent.futures
+
 
 def asm_eigenpro_fn(samples, map_fn, top_q, bs_gpu, alpha, min_q=5, seed=1):
     """Prepare gradient map for EigenPro and calculate
@@ -34,7 +26,6 @@ def asm_eigenpro_fn(samples, map_fn, top_q, bs_gpu, alpha, min_q=5, seed=1):
         top_eigval:  	largest eigenvalue.
         beta:   		largest k(x, x) for the EigenPro kernel.
     """
-    np.random.seed(seed)  # set random seed for subsamples
     start = time.time()
     n_sample, _ = samples.shape
 
@@ -222,7 +213,7 @@ class HilbertProjection(nn.Module):
     @staticmethod
     def _compute_opt_params(bs, bs_gpu, beta, top_eigval):
         if bs is None:
-            bs = min(np.int32(beta / top_eigval + 1), bs_gpu)
+            bs = min(int(beta / top_eigval + 1), bs_gpu)
 
         if bs < beta / top_eigval + 1:
             eta = bs / beta /2
@@ -325,13 +316,12 @@ class HilbertProjection(nn.Module):
             # n_nystrom_subsamples = 10_000
 
             mem_bytes = (mem_gb - 1) * 1024 ** 3  # preserve 1GB
-            bsizes = np.arange(n_samples)
+            bsizes = torch.arange(n_samples)
             mem_usages = ((self.x_dim + 3 * n_labels + bsizes + 1)
                           * self.n_centers + n_nystrom_subsamples * 1000) * 4
-            bs_gpu = np.sum(mem_usages < mem_bytes)  # device-dependent batch size
+            bs_gpu = torch.sum(mem_usages < mem_bytes)  # device-dependent batch size
 
-            np.random.seed(seed)
-            sample_ids = np.random.choice(n_samples, n_nystrom_subsamples, replace=False)
+            sample_ids = torch.randperm(n_samples)[:n_nystrom_subsamples]
             self.nystrom_ids = self.tensor(sample_ids).long()
             self.nystrom_samples = self.centers[self.nystrom_ids]
             self.setup_preconditioner(self.nystrom_samples, self.kernel_fn, top_q, bs_gpu, .95)

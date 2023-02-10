@@ -24,6 +24,7 @@ def Yaccu(y,method = 'argmax'):
 
     return y_s
 
+
 def accuracy(alpha, centers, dataloader, kernel_fn, device=torch.device('cpu')):
     alpha= alpha.to(device)
     accu = 0
@@ -50,7 +51,8 @@ def fmm(k, theta, y,device):
     grad = (k @ theta)
     return grad.to(device)
 
-def get_precondioner(centers,nystrom_samples,kernel_fn, data_preconditioner_level):
+
+def get_preconditioner(centers, nystrom_samples, kernel_fn, data_preconditioner_level):
     Lam_x, E_x, beta = nystrom_kernel_svd(
         nystrom_samples,
         kernel_fn, data_preconditioner_level
@@ -83,23 +85,6 @@ def float_x(data):
         data = np.float32(data)
     return data
 
-
-class CustomDataset(Dataset):
-
-    def __init__(self, X,y,
-                 **kwargs):
-        super().__init__(**kwargs)
-        self.X = X
-        self.y = y
-
-    def __len__(self):
-        return self.y.shape[0]
-
-    def __getitem__(self,idx):
-        return (
-            self.X[idx],
-            self.y[idx]
-            )
 
 def divide_to_gpus(somelist,chunck_size,devices):
     somelist_replica = torch.cuda.comm.broadcast(somelist, devices)

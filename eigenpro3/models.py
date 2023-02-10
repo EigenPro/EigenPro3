@@ -1,19 +1,11 @@
 import torch
-from .utils import fmm, get_precondioner, accuracy, divide_to_gpus
+from .utils import fmm, get_preconditioner, accuracy, divide_to_gpus
 from .datasets import makedataloaders
 from .projection import HilbertProjection
-import numpy as np
-import torch.cuda.comm
+from torch.cuda.comm import broadcast
 import concurrent.futures
-import time
 
-from .utils import CustomDataset
-from torch.utils.data import Dataset, DataLoader
-import torchvision
 from torch.nn.functional import one_hot
-from .kernels import gaussian, laplacian
-from .data_utils import load_cifar10_data
-import os
 
 class KernelModel():
 
@@ -46,12 +38,11 @@ class KernelModel():
             self.weights_all = [self.weights.to(self.device_base)]
             self.centers_all = [self.centers.to(self.device_base)]
 
-            ###### Initilization of Inexact projection #########
-        print("Inexact Projection Initialization starts...")
+        ###### Initilize inexact projection #########
+        print("Initializing inexact projection operator...")
         self.InexactProjector = HilbertProjection(self.kernel,
                                                   self.centers,self.n_classes, devices=devices,multi_gpu=self.multi_gpu)
-        print("Inexact Projection Initialization finished.")
-        ###### Initilization of Inexact projection #########
+        print("Done.\n"+'-'*20)
 
 
         ###### DATA Preconditioner
@@ -59,14 +50,13 @@ class KernelModel():
         print("data preconditioner...")
         if nystrom_samples==None:
             ####### randomly select nystrom samples from X
-            nystrom_ids = np.random.choice(range(X.shape[0]),
-                                           size=n_nystrom_samples, replace=False)
+            nystrom_ids = torch.randperm(X.shape[0])[:n_nystrom_samples]
             self.nystrom_samples = X[nystrom_ids]
         else:
             self.nystrom_samples = nystrom_samples
 
         self.data_preconditioner_matrix,self.eigenvectors_data,self.batch_size,self.lr \
-            = get_precondioner( self.centers, self.nystrom_samples,self.kernel, data_preconditioner_level + 1)
+            = get_preconditioner( self.centers, self.nystrom_samples,self.kernel, data_preconditioner_level + 1)
         print("data preconditioner is ready.")
 
         self.centers = self.centers.to(self.device_base)
@@ -80,11 +70,11 @@ class KernelModel():
     def fit(self, train_loaders, val_loader=None,epochs=10,score_fn=None):
         for t in range(epochs):
             self.epoch = t
-            print(f'Fit: start of epoch {t + 1} of {epochs}')
             self.fit_epoch(train_loaders)
             if val_loader!=None and score_fn!=None:
                 accu = score_fn(self.weights,self.centers,val_loader,self.kernel,self.device_base)
-                print(f'epoch {t:3d} validation accuracy: {accu*100.:5.2f}%')
+                print(f'epoch {t+1:3d} validation accuracy: {accu*100.:5.2f}%')
+                print('-'*20)
 
 
 
@@ -111,8 +101,6 @@ class KernelModel():
                 if (batch_num + 1)%2==0:
                     print(f'Fit : batch {batch_num + 1} ')
 
-
-
                 batch_num += 1
                 del batch_ids, X_batch, y_batch
 
@@ -121,8 +109,8 @@ class KernelModel():
 
         if self.multi_gpu:
             ##### Putting a copy of the batch in all available GPUs
-            X_batch_all = torch.cuda.comm.broadcast(X_batch, self.devices)
-            y_batch_all = torch.cuda.comm.broadcast(y_batch, self.devices)
+            X_batch_all = broadcast(X_batch, self.devices)
+            y_batch_all = broadcast(y_batch, self.devices)
         else:
             X_batch_all = [X_batch.to(self.device_base)]
             y_batch_all = [y_batch.to(self.device_base)]
@@ -184,11 +172,9 @@ class KernelModel():
 
     
     def precondition_correction(self, X_batch, grad):
-        time.sleep(0.1)
         Kmat_xs_xbatch = self.kernel(self.nystrom_samples, X_batch)
         preconditon_grad = self.data_preconditioner_matrix @ (self.eigenvectors_data.T @ (Kmat_xs_xbatch @ grad))
         del Kmat_xs_xbatch
-
         return preconditon_grad
 
 
@@ -202,8 +188,9 @@ class KernelModel():
         )
 
         new_weights = self.weights.to(self.device_base) - (self.lr / (self.batch_size)) * self.theta2.to(self.device_base)
-
+        
         self.weights = new_weights.to(self.device_base)
+        
         if self.multi_gpu:
             for i in range(len(self.devices)):
                 if i < len(self.devices) - 1:

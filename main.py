@@ -1,6 +1,7 @@
 import torch
-from eigenpro3.data_utils import load_dataset
-from eigenpro3.utils import CustomDataset, accuracy
+from eigenpro3.utils import load_dataset
+from eigenpro3.utils import accuracy
+from eigenpro3.datasets import CustomDataset
 from eigenpro3.models import KernelModel
 from eigenpro3.kernels import laplacian, ntk_relu
 from torch.nn.functional import one_hot
@@ -19,7 +20,7 @@ testloader = torch.utils.data.DataLoader(
     shuffle=False, num_workers=16,pin_memory=True)
 
 
-model = KernelModel(y_train[p:], centers, kernel_fn, X=X_train[p:],
+model = KernelModel(y_train, centers, kernel_fn, X=X_train,
     devices =[torch.device('cuda:0'), torch.device('cuda:1')], 
     multi_gpu=True)
 
