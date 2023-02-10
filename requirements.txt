@@ -1,2 +1,2 @@
-sklearn
-ipdb
+scikit-learn
+scipy
