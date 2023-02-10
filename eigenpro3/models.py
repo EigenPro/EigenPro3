@@ -3,16 +3,15 @@ from .utils import fmm, get_preconditioner, accuracy, divide_to_gpus
 from .datasets import makedataloaders
 from .projection import HilbertProjection
 from torch.cuda.comm import broadcast
-import concurrent.futures
+from concurrent.futures import ThreadPoolExecutor
 
-from torch.nn.functional import one_hot
 
 class KernelModel():
 
     def __init__(self, y, centers, kernel_fn,X=None, devices =[torch.device('cpu')], make_dataloader=True,
                  nystrom_samples=None, n_nystrom_samples=5_000, data_preconditioner_level=500,multi_gpu=False):
 
-        self.devices = devices
+        self.devices = tuple(devices)
         self.device_base = self.devices[0]
 
         self.n_classes = y.shape[-1]
@@ -29,25 +28,23 @@ class KernelModel():
         self.multi_gpu = multi_gpu
         if multi_gpu:
             ######## dsitributing the weights over all avalibale GPUs
-            self.weights_all = divide_to_gpus(self.weights,self.n_centers,devices)
+            self.weights_all = divide_to_gpus(self.weights,self.n_centers, self.devices)
 
             ######## dsitributing the centers over all avalibale GPUs
-            self.centers_all = divide_to_gpus(self.centers,self.n_centers,devices)
+            self.centers_all = divide_to_gpus(self.centers,self.n_centers, self.devices)
 
         else:
             self.weights_all = [self.weights.to(self.device_base)]
             self.centers_all = [self.centers.to(self.device_base)]
 
         ###### Initilize inexact projection #########
-        print("Initializing inexact projection operator...")
-        self.InexactProjector = HilbertProjection(self.kernel,
-                                                  self.centers,self.n_classes, devices=devices,multi_gpu=self.multi_gpu)
-        print("Done.\n"+'-'*20)
+        self.InexactProjector = HilbertProjection(
+            self.kernel, self.centers, self.n_classes, 
+            devices=self.devices, multi_gpu=self.multi_gpu)
 
 
         ###### DATA Preconditioner
         ##### note that batch size and learning rate will be determined in this stage #########
-        print("data preconditioner...")
         if nystrom_samples==None:
             ####### randomly select nystrom samples from X
             nystrom_ids = torch.randperm(X.shape[0])[:n_nystrom_samples]
@@ -57,7 +54,7 @@ class KernelModel():
 
         self.data_preconditioner_matrix,self.eigenvectors_data,self.batch_size,self.lr \
             = get_preconditioner( self.centers, self.nystrom_samples,self.kernel, data_preconditioner_level + 1)
-        print("data preconditioner is ready.")
+        print("Data preconditioner is ready.")
 
         self.centers = self.centers.to(self.device_base)
         self.weights = self.weights.to(self.device_base)
@@ -73,18 +70,19 @@ class KernelModel():
             self.fit_epoch(train_loaders)
             if val_loader!=None and score_fn!=None:
                 accu = score_fn(self.weights,self.centers,val_loader,self.kernel,self.device_base)
-                print(f'epoch {t+1:3d} validation accuracy: {accu*100.:5.2f}%')
-                print('-'*20)
+                print('-'*40)
+                print(f'epoch {t+1:4d}        validation accuracy: {accu*100.:5.2f}%')
+                print('='*40)
 
 
 
     def fit_epoch(self, train_loaders):
         batch_num = 0
         for trainloader_ind, train_loader in enumerate(train_loaders):
-            permutation = torch.randperm(train_loader.X.size()[0])
+            permutation = torch.randperm(train_loader.X.size()[0], device=train_loader.X.device)
             for i in range(0, train_loader.X.size()[0], int(self.batch_size)):
 
-                batch_ids = permutation[i:i + int(self.batch_size)]
+                batch_ids = permutation[i: i + int(self.batch_size)]
                 # self.corrected_gz_scaled = 0
 
                 X_batch = train_loader.X[batch_ids]
@@ -99,7 +97,7 @@ class KernelModel():
                 torch.cuda.empty_cache()
 
                 if (batch_num + 1)%2==0:
-                    print(f'Fit : batch {batch_num + 1} ')
+                    print(f'epoch {self.epoch: 4d}\t batch {batch_num+1 :4d}')
 
                 batch_num += 1
                 del batch_ids, X_batch, y_batch
@@ -134,15 +132,15 @@ class KernelModel():
     def get_gradient(self, X_batch_all, y_batch_all):
 
         ####### Kz_xbatch calculation parallel on GPUs
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            Kz_xbatch_chunk = [executor.submit(self.kernel, input[0], input[1]) for input
+        with ThreadPoolExecutor() as executor:
+            Kz_xbatch_chunk = [executor.submit(self.kernel, inputs[0], inputs[1]) for inputs
                     in zip(*[X_batch_all, self.centers_all])]
 
         kxbatchz_all = [i.result() for i in Kz_xbatch_chunk]
 
         ######## gradient calculation parallel on GPUs
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            gradients = [executor.submit(fmm, input[0], input[1], input[2],self.device_base) for input
+        with ThreadPoolExecutor() as executor:
+            gradients = [executor.submit(fmm, inputs[0], inputs[1], inputs[2],self.device_base) for inputs
                     in zip(*[kxbatchz_all, self.weights_all, y_batch_all])]
 
         del kxbatchz_all
