@@ -1,6 +1,6 @@
 import torch
-from .utils import fmm, get_precondioner, score, divide_to_gpus
-from .dataset import makedataloaders
+from .utils import fmm, get_precondioner, accuracy, divide_to_gpus
+from .datasets import makedataloaders
 from .projection import HilbertProjection
 import numpy as np
 import torch.cuda.comm
@@ -12,7 +12,7 @@ from torch.utils.data import Dataset, DataLoader
 import torchvision
 from torch.nn.functional import one_hot
 from .kernels import gaussian, laplacian
-from .common_datasets import load_cifar10_data
+from .data_utils import load_cifar10_data
 import os
 
 class KernelModel():
@@ -29,16 +29,9 @@ class KernelModel():
         ###### Distribute all equally over all available GPUs #####
             self.train_loaders = makedataloaders(X,y,self.devices)
 
-
-
-
         self.centers = centers
-
-
         self.n_centers = len(centers)
         self.kernel = kernel_fn
-
-
         self.weights = torch.zeros(self.n_centers, y.shape[-1])
 
         self.multi_gpu = multi_gpu
@@ -84,8 +77,6 @@ class KernelModel():
         ###### DATA Preconditioner #########
 
 
-
-
     def fit(self, train_loaders, val_loader=None,epochs=10,score_fn=None):
         for t in range(epochs):
             self.epoch = t
@@ -93,7 +84,7 @@ class KernelModel():
             self.fit_epoch(train_loaders)
             if val_loader!=None and score_fn!=None:
                 accu = score_fn(self.weights,self.centers,val_loader,self.kernel,self.device_base)
-                print(f'epoch{t} -- validation accuracy:{accu}')
+                print(f'epoch {t:3d} validation accuracy: {accu*100.:5.2f}%')
 
 
 
@@ -113,13 +104,12 @@ class KernelModel():
                 self.fit_batch(X_batch, y_batch)
 
                 if self.multi_gpu:
-                    self.sync_gpu()
+                    self.sync_gpus()
 
                 torch.cuda.empty_cache()
 
                 if (batch_num + 1)%2==0:
-                    print(
-                        f'Fit : batch {batch_num + 1} ')
+                    print(f'Fit : batch {batch_num + 1} ')
 
 
 
@@ -140,17 +130,18 @@ class KernelModel():
         gz, grad = self.get_gradient(X_batch_all, y_batch_all)
 
 
-        preconditon_grad = self.Precondition_Correction(X_batch_all[0], grad)
+        preconditon_grad = self.precondition_correction(X_batch_all[0], grad)
         corrected_gz = gz - preconditon_grad
 
         del X_batch_all, y_batch_all
         if self.multi_gpu:
-            self.sync_gpu()
+            self.sync_gpus()
 
         torch.cuda.empty_cache()
         self.corrected_gz_scaled = corrected_gz.to(self.device_base)
         # self.corrected_gz_scaled += corrected_gz.to(self.device_base)
         self.update_weights()
+
 
     def get_gradient(self, X_batch_all, y_batch_all):
 
@@ -167,12 +158,14 @@ class KernelModel():
                     in zip(*[kxbatchz_all, self.weights_all, y_batch_all])]
 
         del kxbatchz_all
+
         grad = 0
         out = []
         ##### summing gradients over GPUs
         for r in gradients:
             grad += r.result()
         del gradients
+        
         ###### complete gradient
         grad = grad - y_batch_all[0]
 
@@ -181,17 +174,19 @@ class KernelModel():
             kgrad = r.result().T @ grad.to(r.result().device)
             out.append(kgrad.to(self.device_base))
         del Kz_xbatch_chunk, kgrad
+        
         if self.multi_gpu:
-            self.sync_gpu()
+            self.sync_gpus()
         torch.cuda.empty_cache()
         gz = torch.cat(out, dim=0)
 
         return gz, grad
 
-    def  Precondition_Correction(self, X_batch, grad):
+    
+    def precondition_correction(self, X_batch, grad):
         time.sleep(0.1)
-        Kmat_xs_xbatch = self.kernel(self.nystrom_samples,X_batch)
-        preconditon_grad = self.data_preconditioner_matrix @ ( self.eigenvectors_data.T @ (Kmat_xs_xbatch @ grad) )
+        Kmat_xs_xbatch = self.kernel(self.nystrom_samples, X_batch)
+        preconditon_grad = self.data_preconditioner_matrix @ (self.eigenvectors_data.T @ (Kmat_xs_xbatch @ grad))
         del Kmat_xs_xbatch
 
         return preconditon_grad
@@ -208,7 +203,7 @@ class KernelModel():
 
         new_weights = self.weights.to(self.device_base) - (self.lr / (self.batch_size)) * self.theta2.to(self.device_base)
 
-        self.weights = (new_weights).to(self.device_base)
+        self.weights = new_weights.to(self.device_base)
         if self.multi_gpu:
             for i in range(len(self.devices)):
                 if i < len(self.devices) - 1:
@@ -218,31 +213,8 @@ class KernelModel():
                     self.weights_all[i] = self.weights[i * self.n_centers // len(self.devices):, :].to(self.devices[i])
         else:
             self.weights_all = [self.weights]
-    def sync_gpu(self):
+    
+    
+    def sync_gpus(self):
         for i in self.devices:
             torch.cuda.synchronize(i)
-
-
-if __name__ == "__main__":
-    os.environ['DATA_DIR'] = '/scratch/bbjr/abedsol1/'
-    kernel_fn = lambda x, y: laplacian(x, y, bandwidth=20.0)
-
-    cifar10 = load_cifar10_data()
-
-    X_train,y_train = cifar10[1]
-    y_train = one_hot(y_train)
-    X_train = (X_train/255.0).reshape(-1,32*32*3)
-    centers_ids = np.random.choice(range(X_train.shape[0]),
-                                   size=5_000, replace=False)
-    centers = torch.tensor(X_train[centers_ids])
-
-
-    X_test, y_test = cifar10[2]
-    X_test = (X_test / 255.0).reshape(-1, 32 * 32 * 3)
-    testloader = torch.utils.data.DataLoader(customdataset(X_test,y_test), batch_size=512,
-                                             shuffle=False, num_workers=16,pin_memory=True)
-
-
-    KM = KernelModel(y_train,centers,kernel_fn,X=X_train,devices =[torch.device('cuda:0'),
-                                                                   torch.device('cuda:1')],multi_gpu=True)
-    KM.fit(KM.train_loaders,testloader,score_fn=score)

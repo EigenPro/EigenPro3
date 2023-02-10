@@ -20,4 +20,6 @@ def nystrom_kernel_svd(samples, kernel_fn, top_q):
                              eigvals=(n_sample - top_q, n_sample - 1))
     eigvals = torch.from_numpy(vals).flip(0)[:top_q]
     eigvecs = torch.from_numpy(vecs).flip(1)[:, :top_q]
-    return eigvals, eigvecs
+    beta = torch.from_numpy(kmat).diag().max()
+
+    return eigvals, eigvecs, beta

@@ -3,32 +3,29 @@ from torch.utils.data import Dataset, DataLoader
 import torch
 import torchvision
 import torchvision.transforms as transforms
+from .utils import CustomDataset
 from torch.nn.functional import one_hot
 from os.path import join as pjoin
 
-def makedataloaders( X,y,devices=[torch.device('cpu')]):
-
-
+def makedataloaders(X, y, devices=[torch.device('cpu')]):
 
         device = devices
-        X_train = torch.tensor(X)
-        y_train = torch.tensor(y)
 
-        batches_in_1gpu = X_train.shape[0] // len(devices)
-        X_train_all = []
-        y_train_all = []
+        batches_in_1gpu = X.shape[0] // len(devices)
+        X_all = []
+        y_all = []
         for ind, g in enumerate(devices):
             if ind < len(devices) - 1:
-                X_train_all.append(X_train[ind * batches_in_1gpu:(ind + 1) * batches_in_1gpu].to(g))
-                y_train_all.append(y_train[ind * batches_in_1gpu:(ind + 1) * batches_in_1gpu].to(g))
+                X_all.append(X[ind * batches_in_1gpu:(ind + 1) * batches_in_1gpu].to(g))
+                y_all.append(y[ind * batches_in_1gpu:(ind + 1) * batches_in_1gpu].to(g))
             else:
-                X_train_all.append(X_train[ind * batches_in_1gpu:].to(g))
-                y_train_all.append(y_train[ind * batches_in_1gpu:].to(g))
+                X_all.append(X[ind * batches_in_1gpu:].to(g))
+                y_all.append(y[ind * batches_in_1gpu:].to(g))
 
 
         trainloader = []
         for ind in range(len(devices)):
-            trainloader.append(dataset_custom(X_train_all[ind],y_train_all[ind]))
+            trainloader.append(CustomDataset(X_all[ind],y_all[ind]))
         return trainloader
 
 class dataset_custom(Dataset):

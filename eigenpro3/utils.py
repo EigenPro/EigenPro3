@@ -24,7 +24,7 @@ def Yaccu(y,method = 'argmax'):
 
     return y_s
 
-def score(alpha,centers, dataloader,kernel_fn,device=torch.device('cpu')):
+def accuracy(alpha, centers, dataloader, kernel_fn, device=torch.device('cpu')):
     alpha= alpha.to(device)
     accu = 0
     cnt = 0
@@ -51,7 +51,7 @@ def fmm(k, theta, y,device):
     return grad.to(device)
 
 def get_precondioner(centers,nystrom_samples,kernel_fn, data_preconditioner_level):
-    Lam_x, E_x = nystrom_kernel_svd(
+    Lam_x, E_x, beta = nystrom_kernel_svd(
         nystrom_samples,
         kernel_fn, data_preconditioner_level
     )
@@ -64,7 +64,6 @@ def get_precondioner(centers,nystrom_samples,kernel_fn, data_preconditioner_leve
     D_x = (1 - tail_eig_x / Lam_x) / Lam_x / nystrom_size
 
     batch_size = int(1 / tail_eig_x)
-    beta= 1.0
     if batch_size < beta / tail_eig_x + 1:
         lr = batch_size / beta / (2)
     else:

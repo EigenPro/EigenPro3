@@ -43,7 +43,7 @@ def asm_eigenpro_fn(samples, map_fn, top_q, bs_gpu, alpha, min_q=5, seed=1):
     else:
         svd_q = top_q
 
-    eigvals, eigvecs = nystrom_kernel_svd(samples, map_fn, svd_q)
+    eigvals, eigvecs, beta = nystrom_kernel_svd(samples, map_fn, svd_q)
 
 
     # Choose k such that the batch size is bounded by
@@ -60,8 +60,8 @@ def asm_eigenpro_fn(samples, map_fn, top_q, bs_gpu, alpha, min_q=5, seed=1):
 
     device = samples.device
     eigvals_t = eigvals.to(device)
-    eigvecs_t = torch.tensor(eigvecs).to(device)
-    tail_eigval_t = torch.tensor(tail_eigval, dtype=torch.float).to(device)
+    eigvecs_t = eigvecs.to(device)
+    tail_eigval_t = tail_eigval.float().to(device)
 
     scale = torch.pow(eigvals[0] / tail_eigval, alpha)
     diag_t = (1 - torch.pow(tail_eigval_t / eigvals_t, alpha)) / eigvals_t
@@ -76,11 +76,8 @@ def asm_eigenpro_fn(samples, map_fn, top_q, bs_gpu, alpha, min_q=5, seed=1):
     print("SVD time: %.2f, top_q: %d, top_eigval: %.2f, new top_eigval: %.2e" %
           (time.time() - start, top_q, eigvals[0], eigvals[0] / scale))
 
-    knorms = 1 - np.sum(eigvecs ** 2, axis=1) * n_sample
-    beta = np.max(knorms)
-    beta=1
 
-    return eigenpro_fn, scale, eigvals[0], float_x(beta), eigvals, eigvecs
+    return eigenpro_fn, scale, eigvals[0], beta, eigvals, eigvecs
 
 
 class HilbertProjection(nn.Module):
@@ -231,7 +228,7 @@ class HilbertProjection(nn.Module):
             eta = bs / beta /2
         else:
             eta = 0.99 * 1 * bs / (beta + (bs - 1) * top_eigval)
-        return bs, float_x(eta)
+        return bs, eta
 
     def eigenpro_iterate(self, z_batch_all, gz_batch, eta, batch_ids):
         # update random coordiate block (for mini-batch)
