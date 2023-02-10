@@ -19,5 +19,6 @@ setuptools.setup(
     packages=['eigenpro3'],
     install_requires=[
         'scipy >= 1.9',
+        'scikit-learn',
     ],
 )
