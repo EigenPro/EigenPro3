@@ -88,8 +88,6 @@ class HilbertProjection(nn.Module):
         self.eigenpro_f = None
         self.precond_verbose = True
 
-        # self.options = falkon.FalkonOptions(never_store_kernel=True, debug=True,no_single_kernel=False)
-
         self.wandb_run = wandb
         self.centers = self.tensor(centers, release=True)
 
@@ -323,12 +321,9 @@ class HilbertProjection(nn.Module):
                     self.sync_gpu()
 
                 if step % 5==0 or step == final_step:
-                    train_sec = time.time() - start
-
                     tr_score = self.evaluate(
                         z_batch_eval_all, gz_train_eval, self.bs, metrics=metrics
                     )
-
                     self.mse_error = tr_score["mse"]
 
 
