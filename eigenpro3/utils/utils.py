@@ -65,7 +65,7 @@ def get_preconditioner(centers, nystrom_samples, kernel_fn, data_preconditioner_
     E_x = E_x[:, :data_preconditioner_level-1]
     D_x = (1 - tail_eig_x / Lam_x) / Lam_x / nystrom_size
 
-    batch_size = int(1 / tail_eig_x)
+    batch_size = int(beta / tail_eig_x)
     if batch_size < beta / tail_eig_x + 1:
         lr = batch_size / beta / (2)
     else:
