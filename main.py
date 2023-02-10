@@ -6,7 +6,7 @@ from eigenpro3.models import KernelModel
 from eigenpro3.kernels import laplacian, ntk_relu
 from torch.nn.functional import one_hot
 
-DEVICE_LIST = [torch.device('cuda:0'), torch.device('cuda:1')] 
+DEVICE_LIST = (torch.device(f'cuda:{i}') for i in range(torch.cuda.device_count())) 
 
 p = 5000 # model size
 
@@ -19,7 +19,7 @@ centers = X_train[torch.randperm(X_train.shape[0])[:p]]
 
 testloader = torch.utils.data.DataLoader(
     CustomDataset(X_test, y_test.argmax(-1)), batch_size=512,
-    shuffle=False, num_workers=16,pin_memory=True)
+    shuffle=False, pin_memory=True)
 
 model = KernelModel(y_train, centers, kernel_fn, X=X_train,
     devices = DEVICE_LIST, multi_gpu=True)
