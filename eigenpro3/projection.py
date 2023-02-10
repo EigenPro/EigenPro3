@@ -1,6 +1,7 @@
 '''Construct kernel model with EigenPro optimizer.'''
 import collections, time, torch, concurrent.futures, torch.nn as nn
 from .utils.svd import nystrom_kernel_svd
+from .utils import midrule, bottomrule
 from timeit import default_timer as timer
 
 
@@ -334,7 +335,7 @@ class HilbertProjection(nn.Module):
             if self.precond_verbose:
                 print("Projection setup: Nystrom size=%d, bs_gpu=%d, eta=%.2f, bs=%d, top_eigval=%.2e, beta=%.2f" %
                       (n_nystrom_subsamples, bs_gpu, self.eta, self.bs, self.top_eigval, self.beta))
-                print("="*40)
+                print(bottomrule)
 
             self.bs_gpu = int(bs_gpu//1.11)
             self.eta = self.tensor(scale * self.eta / self.bs, dtype=torch.double)

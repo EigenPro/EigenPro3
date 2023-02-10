@@ -1,5 +1,5 @@
-import torch
-from .utils import fmm, get_preconditioner, accuracy, divide_to_gpus
+import torch, time
+from .utils import fmm, get_preconditioner, accuracy, divide_to_gpus, bottomrule, midrule 
 from .datasets import makedataloaders
 from .projection import HilbertProjection
 from torch.cuda.comm import broadcast
@@ -37,12 +37,7 @@ class KernelModel():
             self.weights_all = [self.weights.to(self.device_base)]
             self.centers_all = [self.centers.to(self.device_base)]
 
-        ###### Initilize inexact projection #########
-        self.InexactProjector = HilbertProjection(
-            self.kernel, self.centers, self.n_classes, 
-            devices=self.devices, multi_gpu=self.multi_gpu)
-
-
+        
         ###### DATA Preconditioner
         ##### note that batch size and learning rate will be determined in this stage #########
         if nystrom_samples==None:
@@ -51,10 +46,12 @@ class KernelModel():
             self.nystrom_samples = X[nystrom_ids]
         else:
             self.nystrom_samples = nystrom_samples
-
-        self.data_preconditioner_matrix,self.eigenvectors_data,self.batch_size,self.lr \
+        print('Setting up data preconditioner')
+        start_time = time.time()
+        self.data_preconditioner_matrix, self.eigenvectors_data, self.batch_size,self.lr \
             = get_preconditioner( self.centers, self.nystrom_samples,self.kernel, data_preconditioner_level + 1)
-        print("Data preconditioner is ready.")
+        print(f'Setup time = {time.time()-start_time:5.2f} s')
+        print("Done.\n" + bottomrule)
 
         self.centers = self.centers.to(self.device_base)
         self.weights = self.weights.to(self.device_base)
@@ -63,6 +60,12 @@ class KernelModel():
         self.eigenvectors_data = self.eigenvectors_data.to(self.device_base)
         ###### DATA Preconditioner #########
 
+        ###### Initilize inexact projection #########
+        print('Setting up inexact projector')
+        self.inexact_projector = HilbertProjection(
+            self.kernel, self.centers, self.n_classes, 
+            devices=self.devices, multi_gpu=self.multi_gpu)
+        print('Done.\n' + midrule)
 
     def fit(self, train_loaders, val_loader=None,epochs=10,score_fn=None):
         for t in range(epochs):
@@ -70,9 +73,9 @@ class KernelModel():
             self.fit_epoch(train_loaders)
             if val_loader!=None and score_fn!=None:
                 accu = score_fn(self.weights,self.centers,val_loader,self.kernel,self.device_base)
-                print('-'*40)
+                print(midrule)
                 print(f'epoch {t+1:4d}        validation accuracy: {accu*100.:5.2f}%')
-                print('='*40)
+                print(bottomrule)
 
 
 
@@ -179,7 +182,7 @@ class KernelModel():
     def update_weights(self):
 
         gz_projection = self.corrected_gz_scaled.to(self.device_base)
-        self.theta2, _ = self.InexactProjector.fit_hilbert_projection(
+        self.theta2, _ = self.inexact_projector.fit_hilbert_projection(
             None,
             gz_projection, mem_gb=12,
             return_log=False
