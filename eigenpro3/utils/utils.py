@@ -71,6 +71,10 @@ def get_preconditioner(centers, nystrom_samples, kernel_fn, data_preconditioner_
     else:
         lr = learning_rate_prefactor * batch_size / (beta + (batch_size - 1) * tail_eig_x)
 
+    print(f'Data: learning rate: {lr},batch_size={batch_size}, top eigenvalue:{Lam_x[0]},'
+          f' new top eigenvalue:{tail_eig_x}')
+    print("Data preconditioner is ready.")
+
     Kmat_xs_z = kernel_fn(nystrom_samples.cpu(), centers)
     preconditioner_matrix = Kmat_xs_z.T @ (D_x * E_x)
     del Kmat_xs_z

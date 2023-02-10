@@ -182,10 +182,7 @@ class KernelModel():
 
         gz_projection = self.corrected_gz_scaled.to(self.device_base)
         self.theta2= self.inexact_projector.fit_hilbert_projection(
-            None,
-            gz_projection, mem_gb=12,
-            return_log=False
-        )
+            gz_projection, mem_gb=20)
 
         new_weights = self.weights.to(self.device_base) - (self.lr / (self.batch_size)) * self.theta2.to(self.device_base)
         

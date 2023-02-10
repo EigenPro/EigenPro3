@@ -133,11 +133,6 @@ class HilbertProjection(nn.Module):
             self.weight_replica = [self.weight.to(self.device)]
 
 
-
-
-        self.time_track_dict = {'fit_hilbert_projection': [0, 0]}
-
-
     def sync_gpu(self):
         for i in self.devices:
             torch.cuda.synchronize(i)
@@ -228,24 +223,14 @@ class HilbertProjection(nn.Module):
         self.new_top_eigval = self.top_eigval / self.gap
 
     def fit_batch(self, z_batch_all, gz_batch, eta, batch_ids):
-        # z_batch = self.tensor(z_batch)
-        # gz_batch = self.tensor(gz_batch)
-        # t_batch_s = time.time()
-        # batch_ids = self.tensor(batch_ids)
-
-
         self.eigenpro_iterate(z_batch_all, gz_batch, eta, batch_ids)
 
 
     def fit_hilbert_projection(
-        self, z_train, gz_train, max_epochs=200, mem_gb=12,
-        x_val=None, y_val=None, cutoff=1e-5, weight_decay=None,
-        n_nystrom_subsamples=None, top_q=None, bs=None, eta=None,
-        n_train_eval=5000, run_epoch_eval=True, scale=1, seed=1,
-        clf_threshold=0.5, bayes_opt=None, metrics=['mse'], return_log=True
+        self,  gz_train,mem_gb=12, weight_decay=None,
+        n_nystrom_subsamples=None, top_q=None, bs=None, eta=None, scale=1,metrics=['mse']
     ):
-        # ipdb.set_trace()
-        tstart = timer()#time.time()
+
         self.weight_decay = 0.0 if weight_decay is None else weight_decay
         self.weight = self.weight * 0
         n_samples, n_labels = gz_train.shape
@@ -259,7 +244,6 @@ class HilbertProjection(nn.Module):
                 else:
                     n_nystrom_subsamples = 10000
 
-            # n_nystrom_subsamples = 10_000
 
             mem_bytes = (mem_gb - 1) * 1024 ** 3  # preserve 1GB
             bsizes = torch.arange(n_samples)
@@ -285,21 +269,18 @@ class HilbertProjection(nn.Module):
             self.bs_gpu = bs_gpu.item()
             self.eta = self.tensor(scale * self.eta / self.bs, dtype=torch.double)
 
-
-
         z_train_eval, gz_train_eval = self.centers[0:1000], gz_train[0:1000]
         if self.multi_gpu:
             z_batch_eval_all = torch.cuda.comm.broadcast(z_train_eval, self.devices)
         else:
             z_batch_eval_all = [z_train_eval.to(self.device)]
-
-        start = time.time()
-
         epoch = 0
         self.mse_error = 10000
-
         while epoch<2 and self.mse_error>10**-6:
-            final_step = n_samples // self.bs.item()
+            if torch.is_tensor(self.bs):
+                final_step = n_samples // self.bs.item()
+            else:
+                final_step = n_samples // self.bs
 
             permutation = torch.randperm(self.centers.size()[0],device = self.device)
             step = 0
@@ -309,29 +290,21 @@ class HilbertProjection(nn.Module):
                 batch_ids = permutation[i:i + int(self.bs)]
                 z_batch_all = []
                 for j in range(len(self.devices)):
-                    # ipdb.set_trace()
                     z_batch_all.append(self.centers_replica[j][batch_ids.cpu(),:])
 
 
                 self.fit_batch(
                     z_batch_all, gz_train[batch_ids], self.eta, batch_ids
                 )
-
                 if self.multi_gpu:
                     self.sync_gpu()
-
                 if step % 5==0 or step == final_step:
                     tr_score = self.evaluate(
                         z_batch_eval_all, gz_train_eval, self.bs, metrics=metrics
                     )
                     self.mse_error = tr_score["mse"]
-
-
                 step += 1
                 if self.mse_error<10**-6:
                     break
-
             epoch = epoch + 1
-
-
         return self.weight
