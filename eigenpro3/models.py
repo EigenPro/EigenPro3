@@ -128,7 +128,6 @@ class KernelModel():
 
         torch.cuda.empty_cache()
         self.corrected_gz_scaled = corrected_gz.to(self.device_base)
-        # self.corrected_gz_scaled += corrected_gz.to(self.device_base)
         self.update_weights()
 
 
@@ -182,7 +181,7 @@ class KernelModel():
     def update_weights(self):
 
         gz_projection = self.corrected_gz_scaled.to(self.device_base)
-        self.theta2, _ = self.inexact_projector.fit_hilbert_projection(
+        self.theta2= self.inexact_projector.fit_hilbert_projection(
             None,
             gz_projection, mem_gb=12,
             return_log=False

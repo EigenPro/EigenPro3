@@ -5,13 +5,15 @@ from eigenpro3.datasets import CustomDataset
 from eigenpro3.models import KernelModel
 from eigenpro3.kernels import laplacian, ntk_relu
 from torch.nn.functional import one_hot
+import os
 
+os.environ['DATA_DIR'] = '/scratch/bbjr/abedsol1/'
 DEVICE_LIST = (torch.device(f'cuda:{i}') for i in range(torch.cuda.device_count())) 
 
 p = 5000 # model size
 
-kernel_fn = lambda x, z: laplacian(x, z, bandwidth=20.0)
-# kernel_fn = lambda x, z: ntk_relu(x, z, depth=2)
+# kernel_fn = lambda x, z: laplacian(x, z, bandwidth=20.0)
+kernel_fn = lambda x, z: ntk_relu(x, z, depth=10)
 
 n_classes, (X_train, y_train), (X_test, y_test) = load_dataset('cifar10')
 
@@ -24,4 +26,4 @@ testloader = torch.utils.data.DataLoader(
 model = KernelModel(y_train, centers, kernel_fn, X=X_train,
     devices = DEVICE_LIST, multi_gpu=True)
 
-model.fit(model.train_loaders, testloader, score_fn=accuracy)
+model.fit(model.train_loaders, testloader, score_fn=accuracy,epochs=20)
