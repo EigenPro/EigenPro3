@@ -1,19 +1,18 @@
 import torch
-from .utils import fmm, get_precondioner, score,dividetoGPUs
+from .utils import fmm, get_precondioner, score, divide_to_gpus
 from .dataset import makedataloaders
-from .Inexact_Projector import HilbertProjection
+from .projection import HilbertProjection
 import numpy as np
 import torch.cuda.comm
 import concurrent.futures
 import time
 
-from .utils import customdataset
+from .utils import CustomDataset
 from torch.utils.data import Dataset, DataLoader
 import torchvision
 from torch.nn.functional import one_hot
-import ipdb
 from .kernels import gaussian, laplacian
-from .commondatasets import load_cifar10_data
+from .common_datasets import load_cifar10_data
 import os
 
 class KernelModel():
@@ -45,10 +44,10 @@ class KernelModel():
         self.multi_gpu = multi_gpu
         if multi_gpu:
             ######## dsitributing the weights over all avalibale GPUs
-            self.weights_all = dividetoGPUs(self.weights,self.n_centers,devices)
+            self.weights_all = divide_to_gpus(self.weights,self.n_centers,devices)
 
             ######## dsitributing the centers over all avalibale GPUs
-            self.centers_all = dividetoGPUs(self.centers,self.n_centers,devices)
+            self.centers_all = divide_to_gpus(self.centers,self.n_centers,devices)
 
         else:
             self.weights_all = [self.weights.to(self.device_base)]

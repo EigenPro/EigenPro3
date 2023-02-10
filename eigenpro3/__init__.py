@@ -1,3 +1,3 @@
-from .kernelmodels import KernelModel
+from .models import KernelModel
 
 __version__ = "3.0"

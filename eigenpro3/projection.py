@@ -4,17 +4,10 @@ import time
 import torch
 import random
 from sklearn.utils import gen_batches
-from .kernels import gaussian, laplacian
 import torch.nn as nn
 import numpy as np
-
-
-
-from .svd_projection import nystrom_kernel_svd_projection
+from .svd import nystrom_kernel_svd
 from timeit import default_timer as timer
-
-from .utils import float_x
-import ipdb
 import pickle
 from sklearn.utils import gen_batches
 import concurrent.futures
@@ -50,7 +43,7 @@ def asm_eigenpro_fn(samples, map_fn, top_q, bs_gpu, alpha, min_q=5, seed=1):
     else:
         svd_q = top_q
 
-    eigvals, eigvecs = nystrom_kernel_svd_projection(samples, map_fn, svd_q)
+    eigvals, eigvecs = nystrom_kernel_svd(samples, map_fn, svd_q)
 
 
     # Choose k such that the batch size is bounded by
@@ -59,18 +52,18 @@ def asm_eigenpro_fn(samples, map_fn, top_q, bs_gpu, alpha, min_q=5, seed=1):
     # ipdb.set_trace()
     if top_q is None:
         max_bs = min(max(n_sample / 5, bs_gpu), n_sample)
-        top_q = np.sum(np.power(1 / eigvals, alpha) < max_bs) - 1
+        top_q = (torch.pow(1 / eigvals, alpha) < max_bs).sum().data - 1
         top_q = max(top_q, min_q)
 
     eigvals, tail_eigval = eigvals[:top_q - 1], eigvals[top_q - 1]
     eigvecs = eigvecs[:, :top_q - 1]
 
     device = samples.device
-    eigvals_t = torch.tensor(eigvals.copy()).to(device)
+    eigvals_t = eigvals.to(device)
     eigvecs_t = torch.tensor(eigvecs).to(device)
     tail_eigval_t = torch.tensor(tail_eigval, dtype=torch.float).to(device)
 
-    scale = float_x(np.power(eigvals[0] / tail_eigval, alpha))
+    scale = torch.pow(eigvals[0] / tail_eigval, alpha)
     diag_t = (1 - torch.pow(tail_eigval_t / eigvals_t, alpha)) / eigvals_t
 
     def eigenpro_fn(grad, kmat):

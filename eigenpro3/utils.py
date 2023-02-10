@@ -3,8 +3,6 @@ import torch
 import numpy as np
 from torch.utils.data import Dataset, DataLoader
 
-import ipdb
-
 # def get_optimal_params(mem_gb):
 #     raise NotImplementedError
 #     return bs, eta, top_q
@@ -87,7 +85,7 @@ def float_x(data):
     return data
 
 
-class customdataset(Dataset):
+class CustomDataset(Dataset):
 
     def __init__(self, X,y,
                  **kwargs):
@@ -104,7 +102,7 @@ class customdataset(Dataset):
             self.y[idx]
             )
 
-def dividetoGPUs(somelist,chunck_size,devices):
+def divide_to_gpus(somelist,chunck_size,devices):
     somelist_replica = torch.cuda.comm.broadcast(somelist, devices)
     somelist_all = []
     for i in range(len(devices)):

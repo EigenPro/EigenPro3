@@ -1,8 +1,5 @@
 '''Utility functions for performing fast SVD.'''
-import scipy.linalg as linalg
-import numpy as np
-from .utils import float_x
-import ipdb
+import scipy.linalg as linalg, math
 
 def nystrom_kernel_svd_projection(samples, kernel_fn, top_q):
     """Compute top eigensystem of kernel matrix using Nystrom method.
@@ -23,6 +20,6 @@ def nystrom_kernel_svd_projection(samples, kernel_fn, top_q):
     vals, vecs = linalg.eigh(scaled_kmat,
                              eigvals=(n_sample - top_q, n_sample - 1))
     eigvals = vals[::-1][:top_q]
-    eigvecs = vecs[:, ::-1][:, :top_q] / np.sqrt(n_sample)
+    eigvecs = vecs[:, ::-1][:, :top_q] / math.sqrt(n_sample)
 
     return float_x(eigvals), float_x(eigvecs)
