@@ -1,4 +1,4 @@
-import os, torch
+import torch
 from eigenpro3.data_utils import load_dataset
 from eigenpro3.utils import CustomDataset, accuracy
 from eigenpro3.models import KernelModel
@@ -7,8 +7,8 @@ from torch.nn.functional import one_hot
 
 p = 5000 # model size
 
-#kernel_fn = lambda x, z: laplacian(x, z, bandwidth=20.0)
-kernel_fn = lambda x, z: ntk_relu(x, z, depth=2)
+kernel_fn = lambda x, z: laplacian(x, z, bandwidth=20.0)
+# kernel_fn = lambda x, z: ntk_relu(x, z, depth=2)
 
 n_classes, (X_train, y_train), (X_test, y_test) = load_dataset('cifar10')
 
@@ -19,7 +19,7 @@ testloader = torch.utils.data.DataLoader(
     shuffle=False, num_workers=16,pin_memory=True)
 
 
-model = KernelModel(y_train, centers, kernel_fn, X=X_train,
+model = KernelModel(y_train[p:], centers, kernel_fn, X=X_train[p:],
     devices =[torch.device('cuda:0'), torch.device('cuda:1')], 
     multi_gpu=True)
 
