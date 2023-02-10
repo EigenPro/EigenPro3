@@ -16,7 +16,6 @@ import torch
 from eigenpro3.utils import CustomDataset, accuracy, load_dataset
 from eigenpro3.models import KernelModel
 from eigenpro3.kernels import laplacian, ntk_relu
-from torch.nn.functional import one_hot
 
 p = 5000 # model size
 
