@@ -64,7 +64,7 @@ def asm_eigenpro_fn(samples, map_fn, top_q, bs_gpu, alpha, min_q=5, seed=1):
                                                   kmat),
                                          eigvecs_t)))
 
-    print("SVD time: %.2f, top_q: %d, top_eigval: %.2f, new top_eigval: %.2e" %
+    print("Projection SVD_time: %.2f s, top_q: %d, top_eigval: %.2f, new top_eigval: %.2e" %
           (time.time() - start, top_q, eigvals[0], eigvals[0] / scale))
 
 
@@ -332,7 +332,7 @@ class HilbertProjection(nn.Module):
                 self.bs, _ = self._compute_opt_params(bs, bs_gpu, self.beta, self.new_top_eigval)
 
             if self.precond_verbose:
-                print("Projection : Nystrom size=%d, bs_gpu=%d, eta=%.2f, bs=%d, top_eigval=%.2e, beta=%.2f" %
+                print("Projection setup: Nystrom size=%d, bs_gpu=%d, eta=%.2f, bs=%d, top_eigval=%.2e, beta=%.2f" %
                       (n_nystrom_subsamples, bs_gpu, self.eta, self.bs, self.top_eigval, self.beta))
                 print("="*40)
 
