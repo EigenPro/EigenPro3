@@ -25,7 +25,11 @@ from eigenpro3.models import KernelModel
 from eigenpro3.kernels import laplacian, ntk_relu
 
 p = 5000 # model size
-DEVICES = [torch.device(f'cuda:{i}') for i in range(torch.cuda.device_count())] if torch.cuda.is_available() else [torch.device('cpu')]
+
+if torch.cuda.is_available():
+    DEVICES = [torch.device(f'cuda:{i}') for i in range(torch.cuda.device_count())]
+else:
+    DEVICES = [torch.device('cpu')]
 
 kernel_fn = lambda x, z: laplacian(x, z, bandwidth=20.0)
 # kernel_fn = lambda x, z: ntk_relu(x, z, depth=2)
