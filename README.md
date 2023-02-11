@@ -25,6 +25,7 @@ from eigenpro3.models import KernelModel
 from eigenpro3.kernels import laplacian, ntk_relu
 
 p = 5000 # model size
+DEVICES = [torch.device(f'cuda:{i}') for i in range(torch.cuda.device_count())] if torch.cuda.is_available() else [torch.device('cpu')]
 
 kernel_fn = lambda x, z: laplacian(x, z, bandwidth=20.0)
 # kernel_fn = lambda x, z: ntk_relu(x, z, depth=2)
@@ -39,7 +40,7 @@ testloader = torch.utils.data.DataLoader(
 
 
 model = KernelModel(y_train[p:], centers, kernel_fn, X=X_train[p:],
-    devices = [torch.device(f'cuda:{i}') for i in range(torch.cuda.device_count())] if torch.cuda.is_available() else [torch.device('cpu')], 
+    devices = DEVICES, 
     multi_gpu=True)
 
 model.fit(model.train_loaders, testloader, score_fn=accuracy)
