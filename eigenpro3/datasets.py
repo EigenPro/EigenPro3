@@ -1,8 +1,5 @@
-import numpy as np
 from torch.utils.data import Dataset, DataLoader
 import torch
-from torch.nn.functional import one_hot
-from os.path import join as pjoin
 
 
 class CustomDataset(Dataset):
