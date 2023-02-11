@@ -16,7 +16,7 @@ Tested on:
 - pytorch >= 1.13 (not installed along with this package)
 
 ## Demo on CIFAR-10 dataset
-Set an environment variable `DATA_DIR='/path/to/dataset/' where the file `cifar-10-batches-py` can be found. If you would like to download the data, see instructions below the following code-snippet.
+Set an environment variable `DATA_DIR='/path/to/dataset/'` where the file `cifar-10-batches-py` can be found. If you would like to download the data, see instructions below the following code-snippet.
 ```python
 import torch
 from eigenpro3.utils import accuracy, load_dataset
