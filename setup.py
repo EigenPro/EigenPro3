@@ -1,4 +1,4 @@
-import setuptools
+from setuptools import setup, find_packages
 
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
@@ -16,7 +16,7 @@ setuptools.setup(
         "Bug Tracker": "https://github.com/EigenPro/EigenPro3/issues"
     },
     license='Apache-2.0 license',
-    packages=['eigenpro3'],
+    packages=find_packages(),
     install_requires=[
         'scipy >= 1.9',
         'scikit-learn',
