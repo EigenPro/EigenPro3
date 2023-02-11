@@ -1,7 +1,7 @@
 # EigenPro
 EigenPro (short for Eigenspace Projections) is an algorithm for training general kernel models of the form
 $$f(x)=\sum_{i=1}^p \alpha_i K(x,z_i)$$
-where $z_i$ are $p$ model centers.
+where $z_i$ are $p$ model centers. The derivation for the training algorithm is given in (https://arxiv.org/abs/2302.02605)[Toward Large Kernel Models], Amirhesam Abedsoltan, Mikhail Belkin, Parthe Pandit (2023)
 
 # Installation
 ```
