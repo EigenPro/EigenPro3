@@ -5,8 +5,8 @@ where $z_i$ are $p$ model centers. The model centers can be arbitrary, i.e., do 
 
 The EigenPro3 algorithm is based on Projected dual-preconditioned Stochastic Gradient Descent. If fully decouples the model and training
 A complete derivation for the training algorithm is given in the following paper  
-**Title:** [Toward Large Kernel Models](https://arxiv.org/abs/2302.02605),  
-**Authors:** Amirhesam Abedsoltan, Mikhail Belkin, Parthe Pandit (2023)
+**Title:** [Toward Large Kernel Models](https://arxiv.org/abs/2302.02605) (2023)  
+**Authors:** Amirhesam Abedsoltan, Mikhail Belkin, Parthe Pandit.
 
 # Installation
 ```
