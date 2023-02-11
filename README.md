@@ -1,12 +1,14 @@
 # EigenPro3
 EigenPro (short for Eigenspace Projections) is an algorithm for training general kernel models of the form
 $$f(x)=\sum_{i=1}^p \alpha_i K(x,z_i)$$
-where $z_i$ are $p$ model centers. The model centers can be arbitrary, i.e., do not need to be a subset of the training data. The algorithm requires only $O(p)$ memory, and takes advantage of multiple GPUs. 
+where $z_i$ are $p$ model centers. The model centers can be arbitrary, i.e., do not need to be a subset of the training data. The algorithm requires only $O(p)$ memory, and takes advantage of multiple GPUs.
 
 The EigenPro3 algorithm is based on Projected dual-preconditioned Stochastic Gradient Descent. If fully decouples the model and training
 A complete derivation for the training algorithm is given in the following paper  
 **Title:** [Toward Large Kernel Models](https://arxiv.org/abs/2302.02605) (2023)  
 **Authors:** Amirhesam Abedsoltan, Mikhail Belkin, Parthe Pandit.
+
+Read on for more details about the algorithm.
 
 # Installation
 ```
@@ -56,10 +58,10 @@ import os
 CIFAR10(os.environ['DATA_DIR'], train=True, download=True)
 ```
 
-## Limitations of EigenPro 2.0
+# Limitations of EigenPro 2.0
 EigenPro 2.0 can only train models of the form $$f(x)=\sum_{i=1}^n \alpha_i K(x,x_i)$$ where $x_i$ are $n$ training samples.
 
-## Algorithm
+## Algorithm details
 **EigenPro 3.0** applies a dual preconditioner, one for the model and one for the data. It applies a projected-preconditioned SGD
 $$f^{t+1}=\mathrm{proj}(f^t - \eta\mathcal{P}(\nabla L(f^t)))$$
 where $\nabla L$ is a Fréchet derivative, $\mathcal{P}$ is a preconditioner, and $\textrm{proj}$ is a projection operator onto the model space.
