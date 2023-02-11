@@ -4,8 +4,8 @@ $$f(x)=\sum_{i=1}^p \alpha_i K(x,z_i)$$
 where $z_i$ are $p$ model centers. The model centers can be arbitrary, i.e., do not need to be a subset of the training data. The algorithm requires only $O(p)$ memory, and takes advantage of multiple GPUs. 
 
 The EigenPro3 algorithm is based on Projected dual-preconditioned Stochastic Gradient Descent. If fully decouples the model and training
-A complete derivation for the training algorithm is given in the following paper \ 
-**Title:** [Toward Large Kernel Models](https://arxiv.org/abs/2302.02605), \ 
+A complete derivation for the training algorithm is given in the following paper  
+**Title:** [Toward Large Kernel Models](https://arxiv.org/abs/2302.02605),  
 **Authors:** Amirhesam Abedsoltan, Mikhail Belkin, Parthe Pandit (2023)
 
 # Installation
