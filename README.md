@@ -42,7 +42,7 @@ centers = X_train[torch.randperm(X_train.shape[0])[:p]]
 
 testloader = torch.utils.data.DataLoader(
     CustomDataset(X_test, y_test.argmax(-1)), batch_size=512,
-    shuffle=False, num_workers=16,pin_memory=True)
+    shuffle=False, num_workers=16, pin_memory=True)
 
 
 model = KernelModel(y_train[p:], centers, kernel_fn, X=X_train[p:],
