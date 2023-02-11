@@ -13,7 +13,8 @@ Requirements:
 ## Testing installation
 ```python
 import torch
-from eigenpro3.utils import CustomDataset, accuracy, load_dataset
+from eigenpro3.utils import accuracy, load_dataset
+from eigenpro3.datasets import CustomDataset
 from eigenpro3.models import KernelModel
 from eigenpro3.kernels import laplacian, ntk_relu
 
