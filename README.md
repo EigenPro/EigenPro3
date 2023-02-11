@@ -33,7 +33,7 @@ testloader = torch.utils.data.DataLoader(
 
 
 model = KernelModel(y_train[p:], centers, kernel_fn, X=X_train[p:],
-    devices = [torch.device('cuda:i') for i in range(torch.cuda.device_count())] if torch.cuda.is_available() else [torch.device('cpu')], 
+    devices = [torch.device(f'cuda:{i}') for i in range(torch.cuda.device_count())] if torch.cuda.is_available() else [torch.device('cpu')], 
     multi_gpu=True)
 
 model.fit(model.train_loaders, testloader, score_fn=accuracy)
