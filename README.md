@@ -1,16 +1,22 @@
-# EigenPro
+# EigenPro3
 EigenPro (short for Eigenspace Projections) is an algorithm for training general kernel models of the form
 $$f(x)=\sum_{i=1}^p \alpha_i K(x,z_i)$$
-where $z_i$ are $p$ model centers. The derivation for the training algorithm is given in (https://arxiv.org/abs/2302.02605)[Toward Large Kernel Models], Amirhesam Abedsoltan, Mikhail Belkin, Parthe Pandit (2023)
+where $z_i$ are $p$ model centers. The model centers can be arbitrary, i.e., do not need to be a subset of the training data. The algorithm requires only $O(p)$ memory, and takes advantage of multiple GPUs. 
+
+The EigenPro3 algorithm is based on Projected dual-preconditioned Stochastic Gradient Descent. If fully decouples the model and training
+A complete derivation for the training algorithm is given in the following paper\ 
+**Title:** [Toward Large Kernel Models](https://arxiv.org/abs/2302.02605), 
+**Authors:** Amirhesam Abedsoltan, Mikhail Belkin, Parthe Pandit (2023)
 
 # Installation
 ```
 pip install git+https://github.com/EigenPro/EigenPro3.git@testing
 ```
-Requirements:
+Tested on:
 - pytorch >= 1.13 (not installed along with this package)
 
-## Testing installation
+## Demo on CIFAR-10 dataset
+Set an environment variable `DATA_DIR='/path/to/dataset/' where the file `cifar-10-batches-py` can be found. If you would like to download the data, see instructions below the following code-snippet.
 ```python
 import torch
 from eigenpro3.utils import accuracy, load_dataset
@@ -37,6 +43,12 @@ model = KernelModel(y_train[p:], centers, kernel_fn, X=X_train[p:],
     multi_gpu=True)
 
 model.fit(model.train_loaders, testloader, score_fn=accuracy)
+```
+### Downloading Data
+```python
+from torchvision.datasets import CIFAR10
+import os
+CIFAR10(os.environ['DATA_DIR'], train=True, download=True)
 ```
 
 ## Limitations of EigenPro 2.0
