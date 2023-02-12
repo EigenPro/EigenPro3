@@ -9,8 +9,8 @@ def unit_range_normalize(samples):
 
 
 def load_cifar10_data(**kwargs):
-    train_data = CIFAR10(os.environ['DATA_DIR'], train=True)
-    test_data = CIFAR10(os.environ['DATA_DIR'], train=False)
+    train_data = CIFAR10(os.environ['DATA_DIR'], train=True,download=True)
+    test_data = CIFAR10(os.environ['DATA_DIR'], train=False,download=True)
     n_class = len(train_data.classes)
     return (
         n_class,

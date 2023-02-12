@@ -16,18 +16,17 @@ class CustomDataset(Dataset):
         return (self.X[idx], self.y[idx])
 
 
-def makedataloaders(X, y, devices=[torch.device('cpu')]):
+def makedataloaders(X, y,batch_size=512, devices=[torch.device('cpu')]):
 
-        device = devices
         samples_per_device = X.shape[0] // len(devices)
         trainloaders = []
         
         for i, g in enumerate(devices):
             trainloaders.append(
-                CustomDataset(
-                    X[i * samples_per_device : (i+1) * samples_per_device].to(g), 
-                    y[i * samples_per_device : (i+1) * samples_per_device].to(g) 
-                )
+                torch.utils.data.DataLoader(CustomDataset(
+                    X[i * samples_per_device : (i+1) * samples_per_device].to(g),
+                    y[i * samples_per_device : (i+1) * samples_per_device].to(g)
+                ), batch_size=batch_size, shuffle=False)
             )
 
         return trainloaders

@@ -5,25 +5,25 @@ from .projection import HilbertProjection
 from torch.cuda.comm import broadcast
 from concurrent.futures import ThreadPoolExecutor
 
+import ipdb
 
 class KernelModel():
 
-    def __init__(self, y, centers, kernel_fn,X=None, devices =[torch.device('cpu')], make_dataloader=True,
+    def __init__(self, n_classes ,centers, kernel_fn,y=None,X=None, devices =[torch.device('cpu')], make_dataloader=True,
                  nystrom_samples=None, n_nystrom_samples=5_000, data_preconditioner_level=500,multi_gpu=False):
 
         self.devices = tuple(devices)
         self.device_base = self.devices[0]
 
-        self.n_classes = y.shape[-1]
+        self.n_classes = n_classes
+        self.make_dataloader = make_dataloader
 
-        if make_dataloader:
-        ###### Distribute all equally over all available GPUs #####
-            self.train_loaders = makedataloaders(X,y,self.devices)
+
 
         self.centers = centers
         self.n_centers = len(centers)
         self.kernel = kernel_fn
-        self.weights = torch.zeros(self.n_centers, y.shape[-1])
+        self.weights = torch.zeros(self.n_centers, n_classes)
 
         self.multi_gpu = multi_gpu
         if multi_gpu:
@@ -60,6 +60,12 @@ class KernelModel():
         self.eigenvectors_data = self.eigenvectors_data.to(self.device_base)
         ###### DATA Preconditioner #########
 
+
+
+        if make_dataloader:
+        ###### Distribute all equally over all available GPUs #####
+            self.train_loaders = makedataloaders(X,y,self.batch_size,self.devices)
+
         ###### Initilize inexact projection #########
         print('Setting up inexact projector')
         self.inexact_projector = HilbertProjection(
@@ -82,15 +88,7 @@ class KernelModel():
     def fit_epoch(self, train_loaders):
         batch_num = 0
         for trainloader_ind, train_loader in enumerate(train_loaders):
-            permutation = torch.randperm(train_loader.X.size()[0], device=train_loader.X.device)
-            for i in range(0, train_loader.X.size()[0], int(self.batch_size)):
-
-                batch_ids = permutation[i: i + int(self.batch_size)]
-                # self.corrected_gz_scaled = 0
-
-                X_batch = train_loader.X[batch_ids]
-                y_batch = train_loader.y[batch_ids]
-
+            for (X_batch, y_batch) in train_loader:
                 ###### fitting the batch
                 self.fit_batch(X_batch, y_batch)
 
@@ -103,7 +101,7 @@ class KernelModel():
                     print(f'epoch {self.epoch: 4d}\t batch {batch_num+1 :4d}')
 
                 batch_num += 1
-                del batch_ids, X_batch, y_batch
+                del  X_batch, y_batch
 
 
     def fit_batch(self, X_batch, y_batch):
