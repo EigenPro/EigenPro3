@@ -19,6 +19,5 @@ setuptools.setup(
     packages=find_packages(),
     install_requires=[
         'scipy >= 1.9',
-        'scikit-learn',
     ],
 )
