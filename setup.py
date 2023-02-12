@@ -1,11 +1,12 @@
 from setuptools import setup, find_packages
+import eigenpro3
 
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setuptools.setup(
     name='eigenpro3',
-    version='3.0.0',
+    version=eigenpro3.__version__,
     author='Amirhesam Abedsoltan, Parthe Pandit',
     author_email='aabedsoltan@ucsd.edu, parthepandit@ucsd.edu',
     description='Fast solver for learning general large scale kernel models',
