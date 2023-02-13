@@ -101,7 +101,7 @@ class HilbertProjection(nn.Module):
                 else:
                     self.centers_all.append(self.centers_replica[i][i * self.n_centers // len(devices):, :])
         else:
-            self.centers_replica = [self.centers.to(self.device)]
+            self.centers_all  = [self.centers.to(self.device)]
 
 
         self.fmmv = lambda x, y,theta: (self.kernel_fn(x,y)@theta)
@@ -130,7 +130,7 @@ class HilbertProjection(nn.Module):
                 else:
                     self.weight_all.append(self.weight_replica[i][i * self.n_centers // len(devices):, :])
         else:
-            self.weight_replica = [self.weight.to(self.device)]
+            self.weight_all = [self.weight.to(self.device)]
 
 
     def sync_gpu(self):
@@ -290,7 +290,7 @@ class HilbertProjection(nn.Module):
                 batch_ids = permutation[i:i + int(self.bs)]
                 z_batch_all = []
                 for j in range(len(self.devices)):
-                    z_batch_all.append(self.centers_replica[j][batch_ids.cpu(),:])
+                    z_batch_all.append(self.centers_all[j][batch_ids.cpu(),:])
 
 
                 self.fit_batch(

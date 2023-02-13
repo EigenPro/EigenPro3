@@ -24,6 +24,6 @@ testloader = torch.utils.data.DataLoader(
     shuffle=False, pin_memory=True)
 
 model = KernelModel(n_classes, centers, kernel_fn, X=X_train,y=y_train,
-    devices = DEVICE_LIST, multi_gpu=True)
+    devices = DEVICE_LIST, multi_gpu=False)
 
 model.fit(model.train_loaders, testloader, score_fn=accuracy,epochs=20)
