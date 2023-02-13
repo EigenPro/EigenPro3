@@ -5,6 +5,8 @@ from .utils import midrule, bottomrule
 from timeit import default_timer as timer
 import math
 
+import ipdb
+
 
 def asm_eigenpro_fn(samples, map_fn, top_q, bs_gpu, alpha, min_q=5, seed=1):
     """Prepare gradient map for EigenPro and calculate
@@ -102,6 +104,7 @@ class HilbertProjection(nn.Module):
                     self.centers_all.append(self.centers_replica[i][i * self.n_centers // len(devices):, :])
         else:
             self.centers_all  = [self.centers.to(self.device)]
+            self.centers_replica = self.centers_all
 
 
         self.fmmv = lambda x, y,theta: (self.kernel_fn(x,y)@theta)
@@ -290,7 +293,7 @@ class HilbertProjection(nn.Module):
                 batch_ids = permutation[i:i + int(self.bs)]
                 z_batch_all = []
                 for j in range(len(self.devices)):
-                    z_batch_all.append(self.centers_all[j][batch_ids.cpu(),:])
+                    z_batch_all.append(self.centers_replica[j][batch_ids.cpu(),:])
 
 
                 self.fit_batch(
