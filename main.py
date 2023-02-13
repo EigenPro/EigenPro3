@@ -8,9 +8,12 @@ from torch.nn.functional import one_hot
 import os
 
 os.environ['DATA_DIR'] = '/expanse/lustre/projects/csd716/amirhesam/data/'
-# DEVICE_LIST = (torch.device(f'cuda:{i}') for i in range(torch.cuda.device_count()))
+if torch.cuda.is_available():
+    DEVICE_LIST = (torch.device(f'cuda:{i}') for i in range(torch.cuda.device_count()))
+    DEVICE_LIST = (torch.device('cpu'))
+else:
+    DEVICE_LIST = [torch.device(f'cpu')]
 
-DEVICE_LIST = [torch.device(f'cuda:0'),torch.device(f'cuda:1')]
 p = 5000 # model size
 
 kernel_fn = lambda x, z: laplacian(x, z, bandwidth=20.0)
@@ -24,7 +27,7 @@ testloader = torch.utils.data.DataLoader(
     CustomDataset(X_test, y_test.argmax(-1)), batch_size=512,
     shuffle=False, pin_memory=True)
 
-model = KernelModel(n_classes, centers, kernel_fn, X=X_train,y=y_train,
-    devices = DEVICE_LIST)
 
-model.fit(model.train_loaders, testloader, score_fn=accuracy,epochs=20)
+model = KernelModel(n_classes, centers, kernel_fn, X=X_train,y=y_train,devices = DEVICE_LIST)
+
+model.fit(model.train_loaders, testloader, score_fn=accuracy, epochs=20)

@@ -5,7 +5,6 @@ from .projection import HilbertProjection
 from torch.cuda.comm import broadcast
 from concurrent.futures import ThreadPoolExecutor
 
-import ipdb
 
 class KernelModel():
 
@@ -25,10 +24,8 @@ class KernelModel():
         self.kernel = kernel_fn
         self.weights = torch.zeros(self.n_centers, n_classes)
 
-        if len(devices)>1:
-            self.multi_gpu = True
-        else:
-            self.multi_gpu = False
+        
+        self.multi_gpu = len(self.devices) > 1
 
         if self.multi_gpu:
             ######## dsitributing the weights over all avalibale GPUs
