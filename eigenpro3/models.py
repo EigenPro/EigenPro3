@@ -10,7 +10,7 @@ import ipdb
 class KernelModel():
 
     def __init__(self, n_classes ,centers, kernel_fn,y=None,X=None, devices =[torch.device('cpu')], make_dataloader=True,
-                 nystrom_samples=None, n_nystrom_samples=5_000, data_preconditioner_level=500,multi_gpu=False):
+                 nystrom_samples=None, n_nystrom_samples=5_000, data_preconditioner_level=500):
 
         self.devices = tuple(devices)
         self.device_base = self.devices[0]
@@ -24,9 +24,10 @@ class KernelModel():
         self.n_centers = len(centers)
         self.kernel = kernel_fn
         self.weights = torch.zeros(self.n_centers, n_classes)
-
-        self.multi_gpu = multi_gpu
-        if multi_gpu:
+        
+        self.multi_gpu = len(self.devices) > 1
+        
+        if self.multi_gpu:
             ######## dsitributing the weights over all avalibale GPUs
             self.weights_all = divide_to_gpus(self.weights,self.n_centers, self.devices)
 
