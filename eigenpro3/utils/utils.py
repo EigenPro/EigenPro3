@@ -52,44 +52,6 @@ def fmm(k, theta, y,device):
     return grad.to(device)
 
 
-def get_preconditioner(centers, nystrom_samples, kernel_fn, data_preconditioner_level):
-    Lam_x, E_x, beta = nystrom_kernel_svd(
-        nystrom_samples,
-        kernel_fn, data_preconditioner_level
-    )
-
-    nystrom_size = nystrom_samples.shape[0]
-
-    tail_eig_x = Lam_x[data_preconditioner_level-1]
-    Lam_x = Lam_x[:data_preconditioner_level-1]
-    E_x = E_x[:, :data_preconditioner_level-1]
-    D_x = (1 - tail_eig_x / Lam_x) / Lam_x / nystrom_size
-
-    batch_size = int(beta / tail_eig_x)
-    if batch_size < beta / tail_eig_x + 1:
-        lr = batch_size / beta / (2)
-    else:
-        lr = learning_rate_prefactor * batch_size / (beta + (batch_size - 1) * tail_eig_x)
-
-    print(f'Data: learning rate: {lr},batch_size={batch_size}, top eigenvalue:{Lam_x[0]},'
-          f' new top eigenvalue:{tail_eig_x}')
-    print("Data preconditioner is ready.")
-
-    Kmat_xs_z = kernel_fn(nystrom_samples.cpu(), centers)
-    preconditioner_matrix = Kmat_xs_z.T @ (D_x * E_x)
-    del Kmat_xs_z
-    return preconditioner_matrix,E_x,batch_size,lr
-
-
-def float_x(data):
-    '''Set data array precision.'''
-    if torch.is_tensor(data):
-        data = data.float()
-    else:
-        data = np.float32(data)
-    return data
-
-
 def divide_to_gpus(somelist,chunck_size,devices):
     somelist_replica = torch.cuda.comm.broadcast(somelist, devices)
     somelist_all = []

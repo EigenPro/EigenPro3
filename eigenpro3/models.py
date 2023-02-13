@@ -1,5 +1,6 @@
 import torch, time
-from .utils import fmm, get_preconditioner, accuracy, divide_to_gpus, bottomrule, midrule 
+from .utils import fmm, accuracy, divide_to_gpus, bottomrule, midrule 
+from .utils.svd import nystrom_kernel_svd
 from .datasets import makedataloaders
 from .projection import HilbertProjection
 from torch.cuda.comm import broadcast
@@ -16,8 +17,6 @@ class KernelModel():
 
         self.n_classes = n_classes
         self.make_dataloader = make_dataloader
-
-
 
         self.centers = centers
         self.n_centers = len(centers)
@@ -50,7 +49,7 @@ class KernelModel():
         print('Setting up data preconditioner')
         start_time = time.time()
         self.data_preconditioner_matrix, self.eigenvectors_data, self.batch_size,self.lr \
-            = get_preconditioner( self.centers, self.nystrom_samples,self.kernel, data_preconditioner_level + 1)
+            = self.get_preconditioner(data_preconditioner_level + 1)
         print(f'Setup time = {time.time()-start_time:5.2f} s')
         print("Done.\n" + bottomrule)
 
@@ -168,6 +167,35 @@ class KernelModel():
         gz = torch.cat(out, dim=0)
 
         return gz, grad
+
+
+    def get_preconditioner(self, data_preconditioner_level):
+        Lam_x, E_x, beta = nystrom_kernel_svd(
+            self.nystrom_samples,
+            self.kernel, data_preconditioner_level
+        )
+
+        nystrom_size = self.nystrom_samples.shape[0]
+
+        tail_eig_x = Lam_x[data_preconditioner_level-1]
+        Lam_x = Lam_x[:data_preconditioner_level-1]
+        E_x = E_x[:, :data_preconditioner_level-1]
+        D_x = (1 - tail_eig_x / Lam_x) / Lam_x / nystrom_size
+
+        batch_size = int(beta / tail_eig_x)
+        if batch_size < beta / tail_eig_x + 1:
+            lr = batch_size / beta / (2)
+        else:
+            lr = learning_rate_prefactor * batch_size / (beta + (batch_size - 1) * tail_eig_x)
+
+        print(f'Data: learning rate: {lr:.2f}, batch size={batch_size:5d}, top eigenvalue:{Lam_x[0]:.2f},'
+              f' new top eigenvalue:{tail_eig_x:.2e}, beta:{beta:.2f}')
+        print("Data preconditioner is ready.")
+
+        Kmat_xs_z = self.kernel(self.nystrom_samples.cpu(), self.centers)
+        preconditioner_matrix = Kmat_xs_z.T @ (D_x * E_x)
+        del Kmat_xs_z
+        return preconditioner_matrix, E_x, batch_size, lr
 
     
     def precondition_correction(self, X_batch, grad):

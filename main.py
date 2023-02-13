@@ -10,7 +10,6 @@ import os
 os.environ['DATA_DIR'] = '/expanse/lustre/projects/csd716/amirhesam/data/'
 if torch.cuda.is_available():
     DEVICE_LIST = (torch.device(f'cuda:{i}') for i in range(torch.cuda.device_count()))
-    DEVICE_LIST = (torch.device('cpu'))
 else:
     DEVICE_LIST = [torch.device(f'cpu')]
 
