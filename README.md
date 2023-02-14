@@ -4,9 +4,9 @@ Recent studies indicate that kernel machines can often perform similarly  or bet
 However, a key feature of DNNs is their ability to scale the model size and training data size independently, whereas in traditional kernel machines model size is tied to data size. Because of this coupling, scaling kernel machines to large data has been computationally challenging. 
 We introduce EigenPro 3.0, an algorithm that provides a way forward  for constructing large-scale *general kernel models*, which are a generalization of kernel machines that decouples the model and data, allowing training on large datasets. 
 
-EigenPro (short for Eigenspace Projections) is an algorithm for training general kernel models of the form
+*General kernel models* are of the form
 $$f(x)=\sum_{i=1}^p \alpha_i K(x,z_i)$$
-where $z_i$ are $p$ model centers. The model centers can be arbitrary, i.e., do not need to be a subset of the training data. The algorithm requires only $O(p)$ memory, and takes advantage of multiple GPUs.
+where $z_i$ are $p$ model centers. The model centers can be arbitrary, i.e., do not need to be a subset of the training data. EigenPro3 requires only $O(p)$ memory, and takes advantage of multiple GPUs.
 
 The EigenPro3 algorithm is based on Projected dual-preconditioned Stochastic Gradient Descent. If fully decouples the model and training
 A complete derivation for the training algorithm is given in the following paper  
