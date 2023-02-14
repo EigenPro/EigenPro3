@@ -67,7 +67,7 @@ EigenPro 2.0 can only train models of the form $$f(x)=\sum_{i=1}^n \alpha_i K(x,
 **EigenPro 3.0** solves the optimization problem,
 $$
 \begin{align}\label{eq:kernel_regression}
-    &\arg\min_{f\in\mathcal{H}}\, \sum_{i=1}^n (f(x_i)-y_i)^2
+    &\arg\min_{f\in\mathcal{H}}\, \sum_{i=1}^n (f(x_i)-y_i)^2\\
     s.t. &f(x)=\sum_{i=1}^p \alpha_i K(x,z_i)
 \end{align}
 $$
