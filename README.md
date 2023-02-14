@@ -2,7 +2,7 @@
 
 Recent studies indicate that kernel machines can often perform similarly  or better than deep neural networks (DNNs) on small datasets. The interest in kernel machines has been additionally bolstered by the discovery of their equivalence to wide neural networks in certain regimes. 
 However, a key feature of DNNs is their ability to scale the model size and training data size independently, whereas in traditional kernel machines model size is tied to data size. Because of this coupling, scaling kernel machines to large data has been computationally challenging. 
-We introduce EigenPro 3.0, an algorithm that provides a way forward  for constructing large-scale \textit{general kernel models}, which are a generalization of kernel machines that decouples the model and data, allowing training on large datasets. 
+We introduce EigenPro 3.0, an algorithm that provides a way forward  for constructing large-scale *general kernel models*, which are a generalization of kernel machines that decouples the model and data, allowing training on large datasets. 
 
 EigenPro (short for Eigenspace Projections) is an algorithm for training general kernel models of the form
 $$f(x)=\sum_{i=1}^p \alpha_i K(x,z_i)$$
