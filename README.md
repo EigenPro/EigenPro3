@@ -64,6 +64,10 @@ Refer to [Custom Dataloader](https://github.com/EigenPro/EigenPro3/blob/testing/
 EigenPro 2.0 can only train models of the form $$f(x)=\sum_{i=1}^n \alpha_i K(x,x_i)$$ where $x_i$ are $n$ training samples.
 
 ## Algorithm details
+**EigenPro 3.0** solves the optimization problem,
+    $$\arg\min{f\in\Hilbert}\, \sum_{i=1}^n (f(\x_i)-y_i)^2+\lambda\norm{f}_\Hilbert^2$$
+    s.t. $$f(x)=\sum_{i=1}^p \alpha_i K(x,z_i)$$
+    
 **EigenPro 3.0** applies a dual preconditioner, one for the model and one for the data. It applies a projected-preconditioned SGD
 $$f^{t+1}=\mathrm{proj}(f^t - \eta\mathcal{P}(\nabla L(f^t)))$$
 where $\nabla L$ is a Fréchet derivative, $\mathcal{P}$ is a preconditioner, and $\textrm{proj}$ is a projection operator onto the model space.
