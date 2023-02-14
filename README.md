@@ -69,7 +69,8 @@ $$
 \begin{align}\label{eq:kernel_regression}
     &\arg\min_{f\in\mathcal{H}}\, \sum_{i=1}^n (f(x_i)-y_i)^2
     s.t. &f(x)=\sum_{i=1}^p \alpha_i K(x,z_i)
-    $$
+\end{align}
+$$
     
 **EigenPro 3.0** applies a dual preconditioner, one for the model and one for the data. It applies a projected-preconditioned SGD
 $$f^{t+1}=\mathrm{proj}(f^t - \eta\mathcal{P}(\nabla L(f^t)))$$
