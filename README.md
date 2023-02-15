@@ -64,7 +64,7 @@ EigenPro 2.0 can only train models of the form $$f(x)=\sum_{i=1}^n \alpha_i K(x,
 
 ## Algorithm details
 **EigenPro 3.0** solves the optimization problem,
-$$\underset{f\in\mathcal{H}}{\text{argmin}}\quad \sum_{i=1}^n (f(x_i)-y_i)^2 \quad \text{s.t.}\quad f\in C=\{f\mid f(x)=\sum_{i=1}^p \alpha_i K(x,z_i)\}$$
+$$\underset{f\in\mathcal{H}}{\text{argmin}}\quad \sum_{i=1}^n (f(x_i)-y_i)^2 \quad \text{s.t.}\quad f\in C=\{f\mid f(x)=\sum_{i=1}^p \alpha_i K(x,z_i)\\}$$
     
 **EigenPro 3.0** applies a dual preconditioner, one for the model and one for the data. It applies a projected-preconditioned SGD
 $$f^{t+1}=\textrm{proj}_C(f^t - \eta\mathcal{P}(\nabla L(f^t)))$$
