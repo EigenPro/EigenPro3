@@ -68,4 +68,4 @@ $$\underset{\text{argmin}}{f\in\mathcal{H}}\quad \sum_{i=1}^n (f(x_i)-y_i)^2 \qu
     
 **EigenPro 3.0** applies a dual preconditioner, one for the model and one for the data. It applies a projected-preconditioned SGD
 $$f^{t+1}=\mathrm{proj}_{\mathcal{C}}(f^t - \eta\mathcal{P}(\nabla L(f^t)))$$
-where $\nabla L$ is a Fréchet derivative, $\mathcal{P}$ is a preconditioner, and $\textrm{proj}$ is a projection operator onto the model space.
+where $\nabla L$ is a Fréchet derivative, $\mathcal{P}$ is a preconditioner, and $\textrm{proj}_{\mathcal{C}}$ is a projection operator onto the model space.
