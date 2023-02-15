@@ -3,8 +3,6 @@ import torch
 import numpy as np
 from torch.utils.data import Dataset, DataLoader
 
-import ipdb
-
 # def get_optimal_params(mem_gb):
 #     raise NotImplementedError
 #     return bs, eta, top_q
@@ -26,7 +24,8 @@ def Yaccu(y,method = 'argmax'):
 
     return y_s
 
-def score(alpha,centers, dataloader,kernel_fn,device=torch.device('cpu')):
+
+def accuracy(alpha, centers, dataloader, kernel_fn, device=torch.device('cpu')):
     alpha= alpha.to(device)
     accu = 0
     cnt = 0
@@ -52,59 +51,8 @@ def fmm(k, theta, y,device):
     grad = (k @ theta)
     return grad.to(device)
 
-def get_precondioner(centers,nystrom_samples,kernel_fn, data_preconditioner_level):
-    Lam_x, E_x = nystrom_kernel_svd(
-        nystrom_samples,
-        kernel_fn, data_preconditioner_level
-    )
 
-    nystrom_size = nystrom_samples.shape[0]
-
-    tail_eig_x = Lam_x[data_preconditioner_level-1]
-    Lam_x = Lam_x[:data_preconditioner_level-1]
-    E_x = E_x[:, :data_preconditioner_level-1]
-    D_x = (1 - tail_eig_x / Lam_x) / Lam_x / nystrom_size
-
-    batch_size = int(1 / tail_eig_x)
-    beta= 1.0
-    if batch_size < beta / tail_eig_x + 1:
-        lr = batch_size / beta / (2)
-    else:
-        lr = learning_rate_prefactor * batch_size / (beta + (batch_size - 1) * tail_eig_x)
-
-    Kmat_xs_z = kernel_fn(nystrom_samples.cpu(), centers)
-    preconditioner_matrix = Kmat_xs_z.T @ (D_x * E_x)
-    del Kmat_xs_z
-    return preconditioner_matrix,E_x,batch_size,lr
-
-
-def float_x(data):
-    '''Set data array precision.'''
-    if torch.is_tensor(data):
-        data = data.float()
-    else:
-        data = np.float32(data)
-    return data
-
-
-class customdataset(Dataset):
-
-    def __init__(self, X,y,
-                 **kwargs):
-        super().__init__(**kwargs)
-        self.X = X
-        self.y = y
-
-    def __len__(self):
-        return self.y.shape[0]
-
-    def __getitem__(self,idx):
-        return (
-            self.X[idx],
-            self.y[idx]
-            )
-
-def dividetoGPUs(somelist,chunck_size,devices):
+def divide_to_gpus(somelist,chunck_size,devices):
     somelist_replica = torch.cuda.comm.broadcast(somelist, devices)
     somelist_all = []
     for i in range(len(devices)):

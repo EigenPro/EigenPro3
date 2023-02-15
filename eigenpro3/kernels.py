@@ -148,7 +148,7 @@ if __name__ == "__main__":
     Z = torch.randn(m, d, device=DEVICE)
     Z_ = normalize(Z, dim=-1)
     KXZ_ntk = ntk_relu(X, Z, 64, bias=1.)
-    KXZ_ntk_ = ntk_relu_normalized(X_, Z_, 64, bias=1.)
+    KXZ_ntk_ = ntk_relu_unit_sphere(X_, Z_, 64, bias=1.)
     print(
         KXZ_ntk.diag().max().item(), 
         KXZ_ntk_.diag().max().item()
