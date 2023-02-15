@@ -8,7 +8,7 @@ The algorithm is based on Projected dual-preconditioned Stochastic Gradient Desc
 **Title:** [Toward Large Kernel Models](https://arxiv.org/abs/2302.02605) (2023)  
 **Authors:** Amirhesam Abedsoltan, Mikhail Belkin, Parthe Pandit.  
 **TL;DR:** Recent studies indicate that kernel machines can perform similarly or better than deep neural networks (DNNs) on small datasets. The interest in kernel machines has been additionally bolstered by the discovery of their equivalence to wide neural networks in certain regimes. 
-However, a key feature of DNNs is their ability to scale the model size and training data size independently, whereas in traditional kernel machines model size is tied to data size. EigenPro 3.0, an algorithm that provides a way forward for constructing large-scale *general kernel models* that decouple the model and training data.
+However, a key feature of DNNs is their ability to scale the model size and training data size independently, whereas in traditional kernel machines model size is tied to data size. EigenPro3 provides a way forward for constructing large-scale *general kernel models* that decouple the model and training data.
 
 # Installation
 ```
