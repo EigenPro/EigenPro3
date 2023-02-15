@@ -2,7 +2,7 @@
 
 *General kernel models* are predictors of the form
 $$f(x)=\sum_{i=1}^p \alpha_i K(x,z_i)$$
-where $z_i$ are model centers, which can be arbitrary, i.e., they need not be a subset of the training data. EigenPro3 requires only $O(p)$ memory, and can use multiple GPUs.
+where $z_i$ are model centers. EigenPro3 requires only $O(p)$ memory, and can use multiple GPUs. Here $K$ can be any positive semidefinite kernel, and $z_i$ can be arbitrary, i.e., they need not be a subset of the training data.
 
 The algorithm is based on Projected dual-preconditioned Stochastic Gradient Descent. A derivation is given in this paper  
 **Title:** [Toward Large Kernel Models](https://arxiv.org/abs/2302.02605) (2023)  
@@ -54,12 +54,19 @@ testloader = torch.utils.data.DataLoader(
 model = KernelModel(n_classes, centers, kernel_fn, X=X_train, y=y_train, devices=DEVICES)
 model.fit(model.train_loaders, testloader, score_fn=accuracy, epochs=20)
 ```
-## Tutorial to train in a batched manner
-Refer to the [FashionMNIST_batched.ipynb](https://github.com/EigenPro/EigenPro3/blob/main/demos/FashionMNIST_batched.ipynb) tutorial where you can use your own dataloader.
-# Limitations of EigenPro2
-[EigenPro2](https://github.com/EigenPro/EigenPro-pytorch) can only train models of the form $$f(x)=\sum_{i=1}^n \alpha_i K(x,x_i)$$ where $x_i$ are $n$ training samples. This can be hard to train if $n$ is very large.
 
-## Algorithm details
+# Tutorial to apply EigenPro3 in a batched manner
+If you want to train your kernel model 1 batch at a time time, you can use your own dataloader and call the `fit_batch` method for the `model` object. 
+Refer to the demo [FashionMNIST_batched.ipynb](https://github.com/EigenPro/EigenPro3/blob/main/demos/FashionMNIST_batched.ipynb) where you can use your own dataloader. A similar method `fit_epoch` is also provided.
+
+
+# Algorithm details
+### Limitations of EigenPro2
+[EigenPro2](https://github.com/EigenPro/EigenPro-pytorch) can only train models of the form $$f(x)=\sum_{i=1}^n \alpha_i K(x,x_i)$$ where $x_i$ are $n$ training samples. It requires $O(n)$ memory and $O(n^2)$ FLOPS per epoch. This does not scale well for large $n$ (billion-scale datasets).
+
+EigenPro3 trains a smaller model of size $p$, requires $O(p)$ memory and $O(np + p^2)$ FLOPS per epoch. This allows scaling to large $n$ (billion-scale), as well as large $p$ (millions of centers $z_i$).
+
+### Optimization formulation
 EigenPro3 solves the optimization problem,
 $$\underset{f\in\mathcal{H}}{\text{argmin}}\quad \sum_{i=1}^n (f(x_i)-y_i)^2 \quad \text{s.t.}\quad f(x)=\sum_{i=1}^p \alpha_i K(x,z_i)\qquad\forall x$$
     
