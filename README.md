@@ -4,11 +4,10 @@
 $$f(x)=\sum_{i=1}^p \alpha_i K(x,z_i)$$
 where $z_i$ are model centers, which can be arbitrary, i.e., they need not be a subset of the training data. EigenPro3 requires only $O(p)$ memory, and can use multiple GPUs.
 
-The algorithm is based on Projected dual-preconditioned Stochastic Gradient Descent. A complete derivation for the training algorithm is given in the following paper  
+The algorithm is based on Projected dual-preconditioned Stochastic Gradient Descent. A derivation is given in this paper  
 **Title:** [Toward Large Kernel Models](https://arxiv.org/abs/2302.02605) (2023)  
 **Authors:** Amirhesam Abedsoltan, Mikhail Belkin, Parthe Pandit.  
-**TL;DR:** Recent studies indicate that kernel machines can perform similarly or better than deep neural networks (DNNs) on small datasets. The interest in kernel machines has been additionally bolstered by the discovery of their equivalence to wide neural networks in certain regimes. 
-However, a key feature of DNNs is their ability to scale the model size and training data size independently, whereas in traditional kernel machines model size is tied to data size. EigenPro3 provides a way forward for constructing large-scale *general kernel models* that decouple the model and training data.
+**TL;DR:** [Recent studies](https://arxiv.org/abs/2212.13881) indicate kernel machines can perform similarly or better than deep neural networks (DNNs) on small datasets. The interest in kernel machines has been additionally bolstered by their equivalence to wide neural networks. However, a key feature of DNNs is their ability to scale the model size and training data size independently, whereas in traditional kernel machines the model size is tied to the data size. EigenPro3 provides a way forward for constructing large-scale *general kernel models* that decouple the model and training data.
 
 # Installation
 ```
@@ -19,7 +18,14 @@ Tested on:
 - CUDA >= 11.6
 
 ## Demo on CIFAR-10 dataset
-Set an environment variable `DATA_DIR='/path/to/dataset/'` where the file `cifar-10-batches-py` can be found. If you would like to download the data, see instructions below the following code-snippet.
+Set an environment variable `DATA_DIR='/path/to/dataset/'` where the file `cifar-10-batches-py` can be found. Otherwise download the data using
+### Downloading Data
+```python
+from torchvision.datasets import CIFAR10
+import os
+CIFAR10(os.environ['DATA_DIR'], train=True, download=True)
+```
+### Train Laplacian kernel model using EigenPro
 ```python
 import torch
 from eigenpro3.utils import accuracy, load_dataset
@@ -47,12 +53,6 @@ testloader = torch.utils.data.DataLoader(
 
 model = KernelModel(n_classes, centers, kernel_fn, X=X_train, y=y_train, devices=DEVICES)
 model.fit(model.train_loaders, testloader, score_fn=accuracy, epochs=20)
-```
-### Downloading Data
-```python
-from torchvision.datasets import CIFAR10
-import os
-CIFAR10(os.environ['DATA_DIR'], train=True, download=True)
 ```
 ## Tutorial to train in a batched manner
 Refer to the [FashionMNIST_batched.ipynb](https://github.com/EigenPro/EigenPro3/blob/main/demos/FashionMNIST_batched.ipynb) tutorial where you can use your own dataloader.
