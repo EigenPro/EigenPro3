@@ -18,7 +18,7 @@ Tested on:
 - CUDA >= 11.6
 
 ## Demo on CIFAR-10 dataset
-Set an environment variable `DATA_DIR='/path/to/dataset/'` where the file `cifar-10-batches-py` can be found. Otherwise download the data using
+Set an environment variable `DATA_DIR='/path/to/dataset/'` where `cifar-10-batches-py` can be downloaded.
 ### Downloading Data
 ```python
 from torchvision.datasets import CIFAR10
