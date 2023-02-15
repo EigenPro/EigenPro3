@@ -18,7 +18,5 @@ setuptools.setup(
     },
     license='Apache-2.0 license',
     packages=find_packages(),
-    install_requires=[
-        'scipy >= 1.9',
-    ],
+    install_requires=['scipy'],
 )

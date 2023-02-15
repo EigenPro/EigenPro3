@@ -5,8 +5,6 @@ from .utils import midrule, bottomrule
 from timeit import default_timer as timer
 import math
 
-import ipdb
-
 
 def asm_eigenpro_fn(samples, map_fn, top_q, bs_gpu, alpha, min_q=5, seed=1):
     """Prepare gradient map for EigenPro and calculate

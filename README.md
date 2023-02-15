@@ -1,4 +1,4 @@
-# EigenPro3: Fast training algorithm for large kernel models
+# EigenPro3: Fast training of large kernel models
 
 *General kernel models* are predictors of the form
 $$f(x)=\sum_{i=1}^p \alpha_i K(x,z_i)$$
@@ -42,9 +42,9 @@ centers = X_train[torch.randperm(X_train.shape[0])[:p]]
 
 testloader = torch.utils.data.DataLoader(
     CustomDataset(X_test, y_test.argmax(-1)), batch_size=512,
-    shuffle=False, num_workers=16, pin_memory=True)
+    shuffle=False, pin_memory=True)
 
-model = KernelModel(n_classes, centers, kernel_fn, X=X_train,y=y_train,devices = DEVICE_LIST)
+model = KernelModel(n_classes, centers, kernel_fn, X=X_train,y=y_train,devices = DEVICES)
 model.fit(model.train_loaders, testloader, score_fn=accuracy, epochs=20)
 ```
 ### Downloading Data
@@ -60,8 +60,8 @@ EigenPro 2.0 can only train models of the form $$f(x)=\sum_{i=1}^n \alpha_i K(x,
 
 ## Algorithm details
 **EigenPro 3.0** solves the optimization problem,
-$$\underset{a}{b}argmin_{f\in\mathcal{H}}\quad \sum_{i=1}^n (f(x_i)-y_i)^2 \quad S.t.\quad f(x)=\sum_{i=1}^p \alpha_i K(x,z_i)$$
+$$\underset{f\in\mathcal{H}}{\text{argmin}}\quad \sum_{i=1}^n (f(x_i)-y_i)^2 \quad \text{s.t.}\quad f(x)=\sum_{i=1}^p \alpha_i K(x,z_i)\qquad\forall x$$
     
 **EigenPro 3.0** applies a dual preconditioner, one for the model and one for the data. It applies a projected-preconditioned SGD
-$$f^{t+1}=\mathrm{proj}(f^t - \eta\mathcal{P}(\nabla L(f^t)))$$
-where $\nabla L$ is a Fréchet derivative, $\mathcal{P}$ is a preconditioner, and $\textrm{proj}$ is a projection operator onto the model space.
+$$f^{t+1}=\textrm{proj}_C(f^t - \eta\mathcal{P}(\nabla L(f^t)))$$
+where $\nabla L$ is a Fréchet derivative, $\mathcal{P}$ is a preconditioner, and $\textrm{proj}_C$ is a projection operator onto the model space.
