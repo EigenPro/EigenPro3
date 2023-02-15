@@ -48,7 +48,7 @@ testloader = torch.utils.data.DataLoader(
     CustomDataset(X_test, y_test.argmax(-1)), batch_size=512,
     shuffle=False, num_workers=16, pin_memory=True)
 
-model = KernelModel(n_classes, centers, kernel_fn, X=X_train,y=y_train,devices = DEVICE_LIST)
+model = KernelModel(n_classes, centers, kernel_fn, X=X_train,y=y_train,devices = DEVICES)
 model.fit(model.train_loaders, testloader, score_fn=accuracy, epochs=20)
 ```
 ### Downloading Data
