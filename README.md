@@ -70,6 +70,3 @@ $$argmin_{f\in\mathcal{H}}\quad \sum_{i=1}^n (f(x_i)-y_i)^2 \quad S.t.\quad f(x)
 **EigenPro 3.0** applies a dual preconditioner, one for the model and one for the data. It applies a projected-preconditioned SGD
 $$f^{t+1}=\mathrm{proj}(f^t - \eta\mathcal{P}(\nabla L(f^t)))$$
 where $\nabla L$ is a Fréchet derivative, $\mathcal{P}$ is a preconditioner, and $\textrm{proj}$ is a projection operator onto the model space.
-
-## COMING SOON
-The code is scheduled for deployment on or before February 15, 2023. Stay tuned!!
