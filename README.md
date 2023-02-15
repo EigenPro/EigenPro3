@@ -1,4 +1,4 @@
-# EigenPro3: Fast algorithm to train large general kernel models
+# EigenPro3: Fast training of large kernel models
 
 *General kernel models* are of the form
 $$f(x)=\sum_{i=1}^p \alpha_i K(x,z_i)$$
