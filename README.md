@@ -55,7 +55,7 @@ import os
 CIFAR10(os.environ['DATA_DIR'], train=True, download=True)
 ```
 ## Tutorial to train in a batched manner
-Refer to the [FashionMNIST_batched.ipynb](https://github.com/EigenPro/EigenPro3/blob/testing/demos/Custom_dataloader.ipynb) tutorial where you can use your own dataloader.
+Refer to the [FashionMNIST_batched.ipynb](https://github.com/EigenPro/EigenPro3/blob/main/demos/FashionMNIST_batched.ipynb) tutorial where you can use your own dataloader.
 # Limitations of EigenPro2
 [EigenPro2](https://github.com/EigenPro/EigenPro-pytorch) can only train models of the form $$f(x)=\sum_{i=1}^n \alpha_i K(x,x_i)$$ where $x_i$ are $n$ training samples. This can be hard to train if $n$ is very large.
 
