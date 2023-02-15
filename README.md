@@ -12,7 +12,7 @@ However, a key feature of DNNs is their ability to scale the model size and trai
 
 # Installation
 ```
-pip install git+https://github.com/EigenPro/EigenPro3.git@testing
+pip install git+https://github.com/EigenPro/EigenPro3.git
 ```
 Tested on:
 - pytorch >= 1.13 (not installed along with this package)
