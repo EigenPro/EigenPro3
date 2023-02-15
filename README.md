@@ -2,7 +2,7 @@
 
 *General kernel models* are predictors of the form
 $$f(x)=\sum_{i=1}^p \alpha_i K(x,z_i)$$
-where $z_i$ are model centers, which can be arbitrary, i.e., they need not be a subset of the training data. EigenPro3 requires only $O(p)$ memory, and uses all availale GPUs, by default.
+where $z_i$ are model centers, which can be arbitrary, i.e., they need not be a subset of the training data. EigenPro3 requires only $O(p)$ memory, and can use multiple GPUs.
 
 The algorithm is based on Projected dual-preconditioned Stochastic Gradient Descent. A complete derivation for the training algorithm is given in the following paper  
 **Title:** [Toward Large Kernel Models](https://arxiv.org/abs/2302.02605) (2023)  
