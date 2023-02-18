@@ -15,7 +15,7 @@ pip install git+https://github.com/EigenPro/EigenPro3.git
 ```
 Tested on:
 - pytorch $\ge$ 1.13 (not installed along with this package)
-- CUDA >= 11.6
+- CUDA $\geqslant$ 11.6
 
 ## Demo on CIFAR-10 dataset
 Set an environment variable `export DATA_DIR='/path/to/dataset/'` where `cifar-10-batches-py` can be downloaded.
