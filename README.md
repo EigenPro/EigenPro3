@@ -14,7 +14,7 @@ The algorithm is based on Projected dual-preconditioned Stochastic Gradient Desc
 pip install git+https://github.com/EigenPro/EigenPro3.git
 ```
 Tested on:
-- pytorch >= 1.13 (not installed along with this package)
+- pytorch $\ge$ 1.13 (not installed along with this package)
 - CUDA >= 11.6
 
 ## Demo on CIFAR-10 dataset
