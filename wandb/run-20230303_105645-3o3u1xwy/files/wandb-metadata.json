@@ -1,0 +1,27 @@
+{
+    "os": "Linux-4.18.0-348.23.1.el8_5.x86_64-x86_64-with-glibc2.28",
+    "python": "3.9.7",
+    "heartbeatAt": "2023-03-03T18:56:47.612643",
+    "startedAt": "2023-03-03T18:56:45.073308",
+    "docker": null,
+    "gpu": "Tesla V100-SXM2-32GB",
+    "gpu_count": 4,
+    "cpu_count": 40,
+    "cuda": null,
+    "args": [
+        "--T",
+        "5"
+    ],
+    "state": "running",
+    "program": "/home/amirhesam/research/EP3_speed_up/EigenPro3/main.py",
+    "codePath": "main.py",
+    "git": {
+        "remote": "git@github.com:EigenPro/EigenPro3.git",
+        "commit": "d763da3454602f35f7055b5bb6f8e0a12c398319"
+    },
+    "email": null,
+    "root": "/home/amirhesam/research/EP3_speed_up/EigenPro3",
+    "host": "exp-7-59",
+    "username": "amirhesam",
+    "executable": "/home/amirhesam/research/kernel/venv_ker/bin/python"
+}

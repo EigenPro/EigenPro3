@@ -3,6 +3,10 @@ from torchvision.datasets import MNIST, EMNIST, FashionMNIST, KMNIST, CIFAR10
 from torch.nn.functional import one_hot
 from .printing import midrule
 
+from torch.utils.data import Dataset
+from os.path import join as pjoin
+import numpy as np
+
 def unit_range_normalize(samples):
     samples -= samples.min(dim=0, keepdim=True).values
     return samples / samples.max(dim=1, keepdim=True).values
@@ -82,3 +86,57 @@ def load_dataset(dataset='mnist', DEVICE=torch.device('cpu'), **kwargs):
     print(midrule)
 
     return n_class, (x_train, y_train), (x_test, y_test)
+
+
+class Cifar5mmobilenetDataset(Dataset):
+
+    def __init__(self,
+                 DATADIR='/expanse/lustre/projects/csd716/amirhesam/data/cifar5m_mobilenet',
+                 parts=4,
+                 device=torch.device('cpu'), subsample=100_000,
+                 n_test=100000, num_knots=5_000,
+                 **kwargs):
+        super().__init__(**kwargs)
+        self.device = device
+        self.X_train = []
+        self.y_train = []
+        self.X_test = []
+        self.y_test = []
+
+        print('Loading cifar5mmobilenet train set...')
+        for ind in range(parts + 1):
+            print(f'part={ind}')
+            # z = np.load(pjoin(DATADIR, f'part{i}.npz'))
+            self.X_train.append(
+                torch.load(pjoin(DATADIR, f'ciar5m_mobilenetv2_100_feature_train_{ind}.pt'), torch.device('cpu')))
+            self.y_train.append(
+                torch.load(pjoin(DATADIR, f'ciar5m_mobilenetv2_100_y_train_{ind}.pt'), torch.device('cpu')))
+            # print(f'Loaded part {i + 1}/6')
+        print("Loading cifar5mmobilenet test set...")
+        # z = np.load(pjoin(DATADIR, 'part5.npz'))
+        self.X_test.append(
+            torch.load(pjoin(DATADIR, f'ciar5m_mobilenetv2_100_feature_test.pt')))
+        self.y_test.append(torch.load(pjoin(DATADIR, f'ciar5m_mobilenetv2_100_y_test.pt')))
+
+        self.X_train = torch.cat(self.X_train)
+        self.y_train = torch.cat(self.y_train).long()
+        self.X_test = torch.cat(self.X_test)
+        self.y_test = torch.cat(self.y_test).long()
+
+        test_ind = np.random.choice(self.X_test.shape[0], size=n_test, replace=False)
+        self.X_test = self.X_test[test_ind]
+        self.y_test = self.y_test[test_ind]
+
+        randomind_knots = np.random.choice(
+            range(self.y_train.shape[0]), size=num_knots, replace=False)
+        self.knots_x = self.X_train[randomind_knots]
+        self.knots_y = self.y_train[randomind_knots]
+
+
+        diff_set = set(range(self.y_train.shape[0])) - set(randomind_knots)
+        diff_set = np.array(list(diff_set))
+        randomind = np.random.choice(
+            diff_set, size=subsample, replace=False)
+        self.X_train = self.X_train[randomind]
+        self.y_train = self.y_train[randomind]
+

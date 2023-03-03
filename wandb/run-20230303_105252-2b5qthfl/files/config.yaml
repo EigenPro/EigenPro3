@@ -1,0 +1,61 @@
+wandb_version: 1
+
+_wandb:
+  desc: null
+  value:
+    cli_version: 0.12.4
+    framework: torch
+    is_jupyter_run: false
+    is_kaggle_kernel: true
+    m:
+    - 1: t
+    - 1: accu_Train
+      5: 1
+      6:
+      - 1
+      - 3
+    - 1: mse_Train
+      5: 1
+      6:
+      - 1
+      - 3
+    - 1: accu_Test
+      5: 1
+      6:
+      - 1
+      - 3
+    - 1: mse_Test
+      5: 1
+      6:
+      - 1
+      - 3
+    python_version: 3.9.7
+    start_time: 1677869572
+    t:
+      1:
+      - 1
+      2:
+      - 1
+      3:
+      - 7
+      - 17
+      4: 3.9.7
+      5: 0.12.4
+      8:
+      - 2
+      - 5
+key:
+  desc: null
+  value: d6a313a1acc41247c5261111fade60242038f3fd
+mode:
+  desc: null
+  value: online
+name:
+  desc: null
+  value: n=100000, p=1000
+org:
+  desc: null
+  value: belkinlab
+project_name:
+  desc: null
+  value: EP3_speedup
