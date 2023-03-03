@@ -7,7 +7,7 @@ from eigenpro3.kernels import laplacian, ntk_relu
 from torch.nn.functional import one_hot
 import os
 
-os.environ['DATA_DIR'] = ''  ##### add your data directory 
+os.environ['DATA_DIR'] = '/expanse/lustre/projects/csd716/amirhesam/data/'  ##### add your data directory
 if torch.cuda.is_available():
     DEVICE_LIST = (torch.device(f'cuda:{i}') for i in range(torch.cuda.device_count()))
 else:

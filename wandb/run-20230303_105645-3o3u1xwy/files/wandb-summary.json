@@ -1,1 +1,0 @@
-{"learning rate": 3733.0, "T": 5, "batch_size": 7466, "accu_Train": 84.46499633789062, "mse_Train": 0.33197322487831116, "t": 1, "_runtime": 21, "_timestamp": 1677869826, "_step": 3, "accu_Test": 84.0, "mse_Test": 0.3364894986152649}
