@@ -277,9 +277,7 @@ class HilbertProjection(nn.Module):
             z_batch_eval_all = [z_train_eval.to(self.device)]
         epoch = 0
         self.mse_error = 10000
-        while epoch<1 and self.mse_error>10**-4:
-
-
+        while epoch<2 and self.mse_error>10**-6:
             if torch.is_tensor(self.bs):
                 final_step = n_samples // self.bs.item()
             else:
@@ -288,10 +286,7 @@ class HilbertProjection(nn.Module):
             permutation = torch.randperm(self.centers.size()[0],device = self.device)
             step = 0
 
-
             for i in range(0,self.centers.size()[0], int(self.bs)):
-
-
 
                 batch_ids = permutation[i:i + int(self.bs)]
                 z_batch_all = []
@@ -310,9 +305,7 @@ class HilbertProjection(nn.Module):
                     )
                     self.mse_error = tr_score["mse"]
                 step += 1
-                if step%5==0:
-                    print(f'Projection--epoch: {epoch} --step: {step} -- mse error:{self.mse_error}')
-                if self.mse_error<10**-4:
+                if self.mse_error<10**-6:
                     break
             epoch = epoch + 1
         return self.weight
