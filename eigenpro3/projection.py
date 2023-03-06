@@ -278,11 +278,6 @@ class HilbertProjection(nn.Module):
         epoch = 0
         self.mse_error = 10000
         while epoch<2 and self.mse_error>10**-6:
-<<<<<<< HEAD
-
-
-=======
->>>>>>> 156247e8792167d75bd3068c71758a242590b87c
             if torch.is_tensor(self.bs):
                 final_step = n_samples // self.bs.item()
             else:
@@ -310,11 +305,6 @@ class HilbertProjection(nn.Module):
                     )
                     self.mse_error = tr_score["mse"]
                 step += 1
-<<<<<<< HEAD
-                if step%5==0:
-                    print(f'Projection--epoch: {epoch} --step: {step} -- mse error:{self.mse_error}')
-=======
->>>>>>> 156247e8792167d75bd3068c71758a242590b87c
                 if self.mse_error<10**-6:
                     break
             epoch = epoch + 1
