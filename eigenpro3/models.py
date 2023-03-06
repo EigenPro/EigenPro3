@@ -7,11 +7,6 @@ from torch.cuda.comm import broadcast
 from concurrent.futures import ThreadPoolExecutor
 
 
-import time
-
-import ipdb
-
-
 class KernelModel():
 
     def __init__(self, n_classes ,centers, kernel_fn,y=None,X=None, devices =[torch.device('cpu')], make_dataloader=True,
@@ -79,11 +74,6 @@ class KernelModel():
         print('Done.\n' + midrule)
 
     def fit(self, train_loaders, val_loader=None,epochs=10,score_fn=None):
-
-        self.time_start = time.time()
-        self.val_loader = val_loader
-        self.step = 0
-
         for t in range(epochs):
             self.epoch = t
             self.fit_epoch(train_loaders)
@@ -124,18 +114,10 @@ class KernelModel():
             X_batch_all = [X_batch.to(self.device_base)]
             y_batch_all = [y_batch.to(self.device_base)]
 
-
-
-        preconditoner_grad = self.precondition_correction(X_batch_all[0])
-
         gz, grad = self.get_gradient(X_batch_all, y_batch_all)
 
 
-        which_newnodes_start = (self.step%self.T)*self.batch_size
-        self.tmp_centers[which_newnodes_start:which_newnodes_start+X_batch_all[0].shape[0]] = X_batch_all[0]
-
-        preconditon_grad = self.data_preconditioner_matrix @  (preconditoner_grad @ grad)
-
+        preconditon_grad = self.precondition_correction(X_batch_all[0], grad)
         corrected_gz = gz - preconditon_grad
 
         del X_batch_all, y_batch_all
@@ -143,67 +125,25 @@ class KernelModel():
             self.sync_gpus()
 
         torch.cuda.empty_cache()
-
-        self.corrected_gz_scaled += corrected_gz.to(self.device_base)
-
-
-        if self.step%self.T==0:
-            print('Projection...')
-            self.update_weights()
-            self.tmp_centers = torch.zeros(self.batch_size*self.T, self.centers.shape[1]).to(self.device_base)
-            self.weights_newcenters = torch.zeros(self.batch_size*self.T, self.n_classes).to(self.device_base)
-            # self.preconditoners_grad = []
-            self.corrected_gz_scaled = 0
-            self.weights_xs = torch.zeros(self.nystrom_samples.shape[0], self.n_classes).to(self.device_base)
-            print('Projection done.')
-
-        print('performance...')
-
-        which_newnodes_end = (self.step % self.T + 1)*self.batch_size
-
-        if self.step%10==0:
-            log_performance([self.weights,self.weights_xs,self.weights_newcenters[:which_newnodes_end]],
-                            [self.centers,self.nystrom_samples,self.tmp_centers[:which_newnodes_end]],
-                            self.val_loader[0],self.kernel,self.devices,self.wandb_run,self.step,
-                            self.time_start,name='Train')
-            log_performance([self.weights,self.weights_xs,self.weights_newcenters[:which_newnodes_end]],
-                            [self.centers,self.nystrom_samples,self.tmp_centers[:which_newnodes_end]] ,
-                            self.val_loader[1],self.kernel, self.devices,self.wandb_run,self.step,
-                            self.time_start, name='Test')
-        self.step +=1
-
-
-
+        self.corrected_gz_scaled = corrected_gz.to(self.device_base)
+        self.update_weights()
 
 
     def get_gradient(self, X_batch_all, y_batch_all):
 
+        ####### Kz_xbatch calculation parallel on GPUs
+        with ThreadPoolExecutor() as executor:
+            Kz_xbatch_chunk = [executor.submit(self.kernel, inputs[0], inputs[1]) for inputs
+                    in zip(*[X_batch_all, self.centers_all])]
 
-        Kxbatch_xs = self.kernel(X_batch_all[0], self.nystrom_samples)
+        kxbatchz_all = [i.result() for i in Kz_xbatch_chunk]
 
-        predict_z,Kz_xbatch_chunk = self.multi_gpu_grad(X_batch_all, self.centers_all,
-                                                   self.weights_all,Kz_xbatch_chunk_return=True)
+        ######## gradient calculation parallel on GPUs
+        with ThreadPoolExecutor() as executor:
+            gradients = [executor.submit(fmm, inputs[0], inputs[1], inputs[2],self.device_base) for inputs
+                    in zip(*[kxbatchz_all, self.weights_all, y_batch_all])]
 
-        which_newnodes_start = (self.step % self.T) * self.batch_size
-
-        if self.step%self.T==0:
-            grad = predict_z - y_batch_all[0]
-        else:
-            tmp_centers_all = divide_to_gpus(self.tmp_centers[0:which_newnodes_start],
-                                             self.tmp_centers[0:which_newnodes_start].shape[0],
-                                             self.devices)
-            weights_newcenters_all = divide_to_gpus(self.weights_newcenters[0:which_newnodes_start],
-                                                    self.weights_newcenters[0:which_newnodes_start].shape[0],
-                                                    self.devices)
-            predict_newcenters = self.multi_gpu_grad(X_batch_all,tmp_centers_all,weights_newcenters_all)
-
-
-
-        self.weights_xs = self.weights_xs +(self.lr / (self.batch_size)) *\
-                          (self.eigenvectors_data*self.D@(self.eigenvectors_data.T@(Kxbatch_xs.T@grad )))
-
-        self.weights_newcenters[which_newnodes_start:which_newnodes_start+grad.shape[0]] = -(self.lr / (self.batch_size)) *grad
-
+        del kxbatchz_all
 
         grad = 0
         out = []
@@ -226,9 +166,7 @@ class KernelModel():
         torch.cuda.empty_cache()
         gz = torch.cat(out, dim=0)
 
-
-        return gz,grad
-
+        return gz, grad
 
 
     def get_preconditioner(self, data_preconditioner_level):
