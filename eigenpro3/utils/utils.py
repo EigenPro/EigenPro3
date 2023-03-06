@@ -9,6 +9,8 @@ import os
 from .printing import midrule, bottomrule
 from torch.cuda.comm import broadcast
 from concurrent.futures import ThreadPoolExecutor
+
+import time
 # def get_optimal_params(mem_gb):
 #     raise NotImplementedError
 #     return bs, eta, top_q
@@ -220,8 +222,9 @@ def divide_to_gpus(somelist,chunck_size,devices):
 
     return somelist_all
 
-def log_performance(weights,centers,val_loader,kernel, devices,wandb_run,t,name='Train'):
-
+def log_performance(weights,centers,val_loader,kernel, devices,wandb_run,t,time_start,name='Train'):
+    
+    elapsed_time = time.time() - time_start
     accu = accuracy(weights, centers, val_loader, kernel, devices)
     mse_out = mse(weights, centers, val_loader, kernel, devices)
     print(midrule)
@@ -231,9 +234,11 @@ def log_performance(weights,centers,val_loader,kernel, devices,wandb_run,t,name=
 
     wandb_run.define_metric(f'accu_{name}', step_metric='t')
     wandb_run.define_metric(f'mse_{name}', step_metric='t')
+
     result_dict = {f'accu_{name}': accu * 100,
                    f'mse_{name}': mse_out,
-                   't':t
+                   't':t,
+                   'elapsed time':elapsed_time
                    }
 
     wandb_run.log(result_dict)

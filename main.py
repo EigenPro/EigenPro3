@@ -65,7 +65,11 @@ wandb_init['org'] = "belkinlab"
 
 wandb_run = setup_wandb(wandb_init)
 
+
+print(f'number of training set:{X_train.shape[0]}')
+print(f'number of centers:{centers.shape[0]}')
+
 model = KernelModel(n_classes, centers, kernel_fn, everyTProject=args.T,
                     X=X_train,y=y_train,devices = DEVICE_LIST,wandb_run=wandb_run)
 
-model.fit(model.train_loaders, [trainloader,testloader], score_fn=accuracy, epochs=30)
+model.fit(model.train_loaders, [trainloader,testloader], score_fn=accuracy, epochs=50)

@@ -277,7 +277,7 @@ class HilbertProjection(nn.Module):
             z_batch_eval_all = [z_train_eval.to(self.device)]
         epoch = 0
         self.mse_error = 10000
-        while epoch<1 and self.mse_error>10**-4:
+        while epoch<2 and self.mse_error>10**-6:
 
 
             if torch.is_tensor(self.bs):
@@ -312,7 +312,7 @@ class HilbertProjection(nn.Module):
                 step += 1
                 if step%5==0:
                     print(f'Projection--epoch: {epoch} --step: {step} -- mse error:{self.mse_error}')
-                if self.mse_error<10**-4:
+                if self.mse_error<10**-6:
                     break
             epoch = epoch + 1
         return self.weight
