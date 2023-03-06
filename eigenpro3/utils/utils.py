@@ -3,17 +3,6 @@ import torch
 import numpy as np
 from torch.utils.data import Dataset, DataLoader
 
-<<<<<<< HEAD
-import ipdb
-import wandb
-import os
-from .printing import midrule, bottomrule
-from torch.cuda.comm import broadcast
-from concurrent.futures import ThreadPoolExecutor
-
-import time
-=======
->>>>>>> 156247e8792167d75bd3068c71758a242590b87c
 # def get_optimal_params(mem_gb):
 #     raise NotImplementedError
 #     return bs, eta, top_q
@@ -74,53 +63,3 @@ def divide_to_gpus(somelist,chunck_size,devices):
             somelist_all.append(somelist_replica[i][i * chunck_size // len(devices):, :])
 
     return somelist_all
-<<<<<<< HEAD
-
-def log_performance(weights,centers,val_loader,kernel, devices,wandb_run,t,time_start,name='Train'):
-    
-    elapsed_time = time.time() - time_start
-    accu = accuracy(weights, centers, val_loader, kernel, devices)
-    mse_out = mse(weights, centers, val_loader, kernel, devices)
-    print(midrule)
-    print(f'Step {t + 1:4d}        {name} accuracy: {accu * 100.:5.2f}%')
-    print(f'Step {t + 1:4d}        {name} mse: {mse_out:5.2f}')
-    print(bottomrule)
-
-    wandb_run.define_metric(f'accu_{name}', step_metric='t')
-    wandb_run.define_metric(f'mse_{name}', step_metric='t')
-
-    result_dict = {f'accu_{name}': accu * 100,
-                   f'mse_{name}': mse_out,
-                   't':t,
-                   'elapsed time':elapsed_time
-                   }
-
-    wandb_run.log(result_dict)
-
-def multi_gpu_grad(X_batch_all,centers_all,weights_all,kernel,device_base,Kz_xbatch_chunk_return=False):
-
-    with ThreadPoolExecutor() as executor:
-        Kz_xbatch_chunk = [executor.submit(kernel, inputs[0], inputs[1]) for inputs
-                           in zip(*[X_batch_all, centers_all])]
-
-    kxbatchz_all = [i.result() for i in Kz_xbatch_chunk]
-
-    ######## gradient calculation parallel on GPUs
-    with ThreadPoolExecutor() as executor:
-        gradients = [executor.submit(fmm, inputs[0], inputs[1], device_base) for inputs
-                     in zip(*[kxbatchz_all, weights_all])]
-
-    del kxbatchz_all
-
-    grad = 0
-    ##### summing gradients over GPUs
-    for r in gradients:
-        grad += r.result()
-    del gradients
-
-    if Kz_xbatch_chunk_return:
-        return grad,Kz_xbatch_chunk
-    else:
-        return grad
-=======
->>>>>>> 156247e8792167d75bd3068c71758a242590b87c
