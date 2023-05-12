@@ -68,7 +68,7 @@ EigenPro3 trains a smaller model of size $p$, requires $O(p)$ memory and $O(np +
 
 ### Optimization formulation
 EigenPro3 solves the optimization problem,
-$$\underset{f\in\mathcal{H}}{\text{argmin}}\quad \sum_{i=1}^n (f(x_i)-y_i)^2 \quad \text{s.t.}\quad f(x)=\sum_{i=1}^p \alpha_i K(x,z_i)\qquad\forall x$$
+$$\underset{f\in\mathcal{H}}{\text{argmin}}\quad \sum_{i=1}^n (f(x_i)-y_i)^2 \quad \text{subject to}\quad f(x)=\sum_{i=1}^p \alpha_i K(x,z_i)\qquad\forall x$$
     
 It applies a dual preconditioner, one for the model and one for the data. It applies a projected-preconditioned SGD
 $$f^{t+1}=\textrm{proj}_C(f^t - \eta\mathcal{P}(\nabla L(f^t)))$$
