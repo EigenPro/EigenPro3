@@ -4,6 +4,9 @@ import eigenpro3
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
+with open('requirements.txt') as f:
+    requirements = f.read().splitlines()
+
 setuptools.setup(
     name='eigenpro3',
     version=eigenpro3.__version__,
@@ -18,5 +21,5 @@ setuptools.setup(
     },
     license='Apache-2.0 license',
     packages=find_packages(),
-    install_requires=['scipy'],
+    install_requires=requirements,
 )
